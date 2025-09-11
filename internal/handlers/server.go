@@ -31,9 +31,7 @@ func NewServer(db *gorm.DB, config *config.Config) *Server {
 func (s *Server) setupRoutes() {
 	s.router.Use(cors.Default())
 
-	s.router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
+	s.router.HEAD("/health", func(c *gin.Context) {	c.Status(http.StatusOK)	})
 
 	userRepo := repository.NewUserRepository(s.db)
 	userService := services.NewUserService(userRepo, s.config)
@@ -49,7 +47,7 @@ func (s *Server) setupRoutes() {
 	protected.Use(middleware.AuthMiddleware(s.config))
 	{
 		protected.GET("/profile", userHandler.GetProfile)
-		protected.GET("/users/:id", userHandler.GetUser)
+		protected.GET("/users/:id", middleware.AuthorizeSelf(), userHandler.GetUser)
 	}
 }
 
