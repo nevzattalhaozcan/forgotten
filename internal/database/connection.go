@@ -36,6 +36,14 @@ func Connect(cfg *config.Config) (*gorm.DB, error)  {
 		return nil, err
 	}
 
+	// Seed the database with initial data for testing
+	if cfg.Server.Environment == "development" {
+		if err := SeedForTest(db); err != nil {
+			log.Printf("seeding error: %v", err)
+			// Don't fail if seeding fails, just log it
+		}
+	}
+
 	log.Println("Database connected successfully")
 	return db, nil
 }
