@@ -1,0 +1,58 @@
+package handlers
+
+import (
+	"net/http"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/nevzattalhaozcan/forgotten/internal/config"
+	"github.com/nevzattalhaozcan/forgotten/internal/middleware"
+	"github.com/nevzattalhaozcan/forgotten/internal/repository"
+	"github.com/nevzattalhaozcan/forgotten/internal/services"
+	"gorm.io/gorm"
+)
+
+type Server struct {
+	db *gorm.DB
+	config *config.Config
+	router *gin.Engine
+}
+
+func NewServer(db *gorm.DB, config *config.Config) *Server {
+	server := &Server{
+		db: db,
+		config: config,
+		router: gin.Default(),
+	}
+	server.setupRoutes()
+	return server
+}
+
+func (s *Server) setupRoutes() {
+	s.router.Use(cors.Default())
+
+	s.router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
+	userRepo := repository.NewUserRepository(s.db)
+	userService := services.NewUserService(userRepo, s.config)
+	userHandler := NewUserHandler(userService)
+
+	api := s.router.Group("/api/v1")
+	{
+		api.POST("/auth/register", userHandler.Register)
+		api.POST("/auth/login", userHandler.Login)
+	}
+
+	protected := api.Group("/")
+	protected.Use(middleware.AuthMiddleware(s.config))
+	{
+		protected.GET("/profile", userHandler.GetProfile)
+		protected.GET("/users/:id", userHandler.GetUser)
+	}
+}
+
+func (s *Server) Start(addr string) error {
+	return s.router.Run(addr)
+}
