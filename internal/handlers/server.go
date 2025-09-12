@@ -4,7 +4,7 @@ import (
 	_ "github.com/nevzattalhaozcan/forgotten/docs" // swag doc import
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/files"
-
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 
 	"github.com/gin-contrib/cors"
@@ -47,6 +47,7 @@ func (s *Server) setupRoutes() {
 
 	if s.config.Server.Environment != "production" {
 		s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		s.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	}
 
 	api := s.router.Group("/api/v1")
