@@ -25,12 +25,12 @@ func NewUserService(userRepo repository.UserRepository, config *config.Config) *
 func (s *UserService) Register(req *models.RegisterRequest) (*models.UserResponse, error) {
 	_, err := s.userRepo.GetByEmail(req.Email)
 	if err == nil {
-		return nil, errors.New("email already in use")
+		return nil, errors.New("email already exists")
 	}
 
 	_, err = s.userRepo.GetByUsername(req.Username)
 	if err == nil {
-		return nil, errors.New("username already in use")
+		return nil, errors.New("username already exists")
 	}
 
 	hashedPassword, err := utils.HashPassword(req.Password)

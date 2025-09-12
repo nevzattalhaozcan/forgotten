@@ -14,9 +14,30 @@ run:
 dev:
 	docker-compose -f $(DOCKER_COMPOSE_FILE) up --build
 
-# Run tests
+# Run all tests
 test:
 	go test -v ./...
+
+# Run unit tests only
+test-unit:
+	go test -v -short ./...
+
+# Run integration tests only  
+test-integration:
+	go test -v -run Integration ./...
+
+# Run tests with coverage
+test-coverage:
+	go test -v -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+
+# Run tests with race detection
+test-race:
+	go test -v -race ./...
+
+# Clean test cache
+test-clean:
+	go clean -testcache
 
 # Clean build artifacts
 clean:
