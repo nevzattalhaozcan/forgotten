@@ -44,7 +44,7 @@ jobs:
               run: go mod download
 
             - name: Run tests
-              run: go test -v -race -coverprofile=coverage.out ./...
+              run: go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
               env:
                 DATABASE_URL: postgres://postgres:password@localhost:5432/testdb?sslmode=disable
 
@@ -53,6 +53,12 @@ jobs:
               with:
                     project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
                     coverage-reports: coverage.out
+                    force-coverage-parser: go
+
+            - name: Codacy finalize coverage
+              run: bash <(curl -Ls https://coverage.codacy.com/get.sh) final
+              env:
+                CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}        
             
             - name: Run linter
               uses: golangci/golangci-lint-action@v3
