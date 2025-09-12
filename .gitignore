@@ -8,6 +8,8 @@
 /server
 /bin
 
+.github/workflows/deploy.yml
+
 # Test binary, built with `go test -c`
 *.test
 
