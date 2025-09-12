@@ -48,10 +48,11 @@ jobs:
               env:
                 DATABASE_URL: postgres://postgres:password@localhost:5432/testdb?sslmode=disable
 
-            - name: Upload coverage to Codecov
-              uses: codecov/codecov-action@v3
+            - name: Upload coverage to Codacy
+              uses: codacy/codacy-coverage-reporter-action@v1
               with:
-                file: coverage.out
+                    project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+                    coverage-reports: coverage.out
             
             - name: Run linter
               uses: golangci/golangci-lint-action@v3
