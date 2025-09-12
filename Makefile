@@ -53,12 +53,18 @@ tools:
 	go install github.com/air-verse/air@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
-# Database migrations (example)
+# Database migrations
 migrate-up:
-	migrate -path internal/database/migrations -database $(DATABASE_URL) up
+	migrate -path internal/database/migrations -database "$(DATABASE_URL)" up
 
 migrate-down:
-	migrate -path internal/database/migrations -database $(DATABASE_URL) down
+	migrate -path internal/database/migrations -database "$(DATABASE_URL)" down 1
+
+migrate-force:
+	migrate -path internal/database/migrations -database "$(DATABASE_URL)" force $(VERSION)
+
+migrate-create:
+	migrate create -ext sql -dir internal/database/migrations -seq $(NAME)
 
 docker-up:
 	docker-compose -f $(DOCKER_COMPOSE_FILE) up -d
@@ -99,5 +105,10 @@ ghcr-compose-generate:
 	@sed -i '' '/# build:/a\'$$'\n''    image: $(GHCR_IMAGE):$(DOCKER_TAG)' docker/docker-compose.ghcr.yml
 	@echo "Generated docker/docker-compose.ghcr.yml for QA sharing"
 
+# Generate mocks
 mocks:
-	mockgen -source=internal/repository/interfaces.go -destination=internal/repository/mocks/mock_repositories.go	
+	mockgen -source=internal/repository/interfaces.go -destination=internal/repository/mocks/mock_repositories.go
+
+# Generate swagger docs
+swagger:
+	swag init -g cmd/server/main.go -o ./docs
