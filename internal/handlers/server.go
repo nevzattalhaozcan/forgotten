@@ -33,6 +33,7 @@ func (s *Server) setupRoutes() {
 
 	s.router.Use(cors.Default())
 	s.router.Use(middleware.LoggingMiddleware())
+	s.router.Use(middleware.MetricsMiddleware())
 
 	s.router.HEAD("/health", func(c *gin.Context) {	c.Status(http.StatusOK)	})
 
