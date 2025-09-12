@@ -44,7 +44,7 @@ jobs:
               run: go mod download
 
             - name: Run tests
-              run: go test -v -race coverprofile=coverage.out ./...
+              run: go test -v -race -coverprofile=coverage.out ./...
               env:
                 DATABASE_URL: postgres://postgres:password@localhost:5432/testdb?sslmode=disable
 
