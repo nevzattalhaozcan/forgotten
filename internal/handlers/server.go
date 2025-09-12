@@ -20,16 +20,19 @@ type Server struct {
 
 func NewServer(db *gorm.DB, config *config.Config) *Server {
 	server := &Server{
-		db: db,
+		db:     db,
 		config: config,
-		router: gin.Default(),
+		router: gin.New(),
 	}
 	server.setupRoutes()
 	return server
 }
 
 func (s *Server) setupRoutes() {
+	s.router.Use(gin.Recovery())
+
 	s.router.Use(cors.Default())
+	s.router.Use(middleware.LoggingMiddleware())
 
 	s.router.HEAD("/health", func(c *gin.Context) {	c.Status(http.StatusOK)	})
 

@@ -7,10 +7,16 @@ import (
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
 	"github.com/nevzattalhaozcan/forgotten/internal/database"
 	"github.com/nevzattalhaozcan/forgotten/internal/handlers"
+	"github.com/nevzattalhaozcan/forgotten/pkg/logger"
 )
 
 func main() {
 	cfg := config.Load()
+
+	if err := logger.Init(cfg.Server.Environment); err != nil {
+        log.Fatalf("failed to initialize logger: %v", err)
+    }
+    defer logger.Sync()
 
 	db, err := database.Connect(cfg)
 	if err != nil {

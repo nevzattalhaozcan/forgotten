@@ -98,3 +98,6 @@ ghcr-compose-generate:
 	@sed 's|build:|# build:|g; s|context: ..|# context: ..|g; s|dockerfile: docker/Dockerfile|# dockerfile: docker/Dockerfile|g' $(DOCKER_COMPOSE_FILE) > docker/docker-compose.ghcr.yml
 	@sed -i '' '/# build:/a\'$$'\n''    image: $(GHCR_IMAGE):$(DOCKER_TAG)' docker/docker-compose.ghcr.yml
 	@echo "Generated docker/docker-compose.ghcr.yml for QA sharing"
+
+mocks:
+	mockgen -source=internal/repository/interfaces.go -destination=internal/repository/mocks/mock_repositories.go	
