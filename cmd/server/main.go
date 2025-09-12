@@ -1,3 +1,16 @@
+// @title Forgotten API
+// @version 1.0
+// @description A Twitter-like social media API built with Go
+// @contact.name API Support
+// @contact.email support@example.com
+// @host localhost:8080
+// @BasePath /api/v1
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+// @termsOfService http://swagger.io/terms/
+
 package main
 
 import (

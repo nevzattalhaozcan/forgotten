@@ -1,6 +1,10 @@
 package handlers
 
 import (
+	_ "github.com/nevzattalhaozcan/forgotten/docs" // swag doc import
+	"github.com/swaggo/gin-swagger"
+	"github.com/swaggo/files"
+
 	"net/http"
 
 	"github.com/gin-contrib/cors"
@@ -40,6 +44,10 @@ func (s *Server) setupRoutes() {
 	userRepo := repository.NewUserRepository(s.db)
 	userService := services.NewUserService(userRepo, s.config)
 	userHandler := NewUserHandler(userService)
+
+	if s.config.Server.Environment != "production" {
+		s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
 
 	api := s.router.Group("/api/v1")
 	{

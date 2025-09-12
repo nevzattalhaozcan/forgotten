@@ -22,6 +22,15 @@ func NewUserHandler(userService *services.UserService) *UserHandler {
 	}
 }
 
+// @Summary Register a new user
+// @Description Create a new user account
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body models.RegisterRequest true "Registration data"
+// @Success 201 {object} map[string]interface{} "User created successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Router /api/v1/auth/register [post]
 func (h *UserHandler) Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -46,6 +55,15 @@ func (h *UserHandler) Register(c *gin.Context) {
 	})
 }
 
+// @Summary User login
+// @Description Authenticate user and return JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body models.LoginRequest true "Login credentials"
+// @Success 200 {object} map[string]interface{} "Login successful"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Router /api/v1/auth/login [post]
 func (h *UserHandler) Login(c *gin.Context) {
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -71,6 +89,14 @@ func (h *UserHandler) Login(c *gin.Context) {
 	})
 }
 
+// @Summary Get user profile
+// @Description Retrieve the profile of the authenticated user
+// @Tags Users
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} map[string]interface{} "User profile retrieved successfully"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Router /api/v1/user/profile [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -89,6 +115,15 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	})
 }
 
+// @Summary Get user by ID
+// @Description Retrieve user information by user ID
+// @Tags Users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string]interface{} "User retrieved successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "User not found"
+// @Router /api/v1/users/{id} [get]
 func (h *UserHandler) GetUser(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
