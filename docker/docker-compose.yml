@@ -63,6 +63,8 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+    networks:
+      - forgotten-network
 
   prometheus:
     image: prom/prometheus:latest
@@ -75,7 +77,11 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
-    restart: unless-stopped    
+    restart: unless-stopped
+    networks:
+      - forgotten-network
+    depends_on:
+      - app    
 
 volumes:
   postgres_data:

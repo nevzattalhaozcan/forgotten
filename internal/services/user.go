@@ -6,6 +6,7 @@ import (
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
 	"github.com/nevzattalhaozcan/forgotten/internal/repository"
+	"github.com/nevzattalhaozcan/forgotten/pkg/metrics"
 	"github.com/nevzattalhaozcan/forgotten/pkg/utils"
 	"gorm.io/gorm"
 )
@@ -51,6 +52,9 @@ func (s *UserService) Register(req *models.RegisterRequest) (*models.UserRespons
 		return nil, errors.New("failed to create user")
 	}
 
+	// increment user count metric
+	metrics.IncrementUserCount(1)
+
 	response := user.ToResponse()
 	return &response, nil
 }
@@ -59,11 +63,13 @@ func (s *UserService) Login(req *models.LoginRequest) (string, *models.UserRespo
 	user, err := s.userRepo.GetByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			metrics.RecordAuthAttempt(false)
 			return "", nil, errors.New("invalid email or password")
 		}
 	}
 
 	if !utils.CheckPasswordHash(req.Password, user.PasswordHash) {
+		metrics.RecordAuthAttempt(false)
 		return "", nil, errors.New("invalid email or password")
 	}
 
@@ -77,6 +83,7 @@ func (s *UserService) Login(req *models.LoginRequest) (string, *models.UserRespo
 		return "", nil, errors.New("failed to generate token")
 	}
 
+	metrics.RecordAuthAttempt(true)
 	response := user.ToResponse()
 	return token, &response, nil
 }

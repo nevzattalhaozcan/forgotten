@@ -2,9 +2,11 @@ package database
 
 import (
 	"log"
+	"time"
 
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
+	"github.com/nevzattalhaozcan/forgotten/pkg/metrics"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -30,6 +32,16 @@ func Connect(cfg *config.Config) (*gorm.DB, error)  {
 
 	sqlDB.SetMaxOpenConns(cfg.Database.MaxOpenConns)
 	sqlDB.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+
+	// Periodically publish DB connection stats
+    go func() {
+        ticker := time.NewTicker(5 * time.Second)
+        defer ticker.Stop()
+        for range ticker.C {
+            stats := sqlDB.Stats()
+            metrics.UpdateDBMetrics(stats.OpenConnections, stats.Idle)
+        }
+    }()
 
 	if err := autoMigrate(db); err != nil {
 		log.Printf("migration error: %v", err)
