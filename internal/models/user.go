@@ -14,6 +14,7 @@ type User struct {
 	FirstName string `json:"first_name" validate:"min=2,max=50"`
 	LastName string `json:"last_name" validate:"min=2,max=50"`
 	IsActive bool `json:"is_active" gorm:"default:true"`
+	Role string `json:"role" validate:"required,oneof=admin user moderator support superuser" gorm:"default:'user'"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
@@ -26,6 +27,7 @@ type UserResponse struct {
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
 	IsActive  bool      `json:"is_active"`
+	Role 	string    `json:"role"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -40,6 +42,7 @@ type RegisterRequest struct {
 	Password  string `json:"password" validate:"required,min=6"`
 	FirstName string `json:"first_name" validate:"required,min=2,max=50"`
 	LastName  string `json:"last_name" validate:"required,min=2,max=50"`
+	Role      string `json:"role" validate:"omitempty,oneof=admin user moderator support superuser" gorm:"default:'user'"`
 }
 
 func (u *User) ToResponse() UserResponse {
@@ -50,6 +53,7 @@ func (u *User) ToResponse() UserResponse {
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		IsActive:  u.IsActive,
+		Role:      u.Role,
 		CreatedAt: u.CreatedAt,
 	}
 }

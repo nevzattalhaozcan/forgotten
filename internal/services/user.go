@@ -39,6 +39,10 @@ func (s *UserService) Register(req *models.RegisterRequest) (*models.UserRespons
 		return nil, err
 	}
 
+	if req.Role == "" {
+		req.Role = "user"
+	}
+
 	user := &models.User{
 		Username: req.Username,
 		Email:    req.Email,
@@ -46,6 +50,7 @@ func (s *UserService) Register(req *models.RegisterRequest) (*models.UserRespons
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		IsActive: true,
+		Role: req.Role,
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
@@ -75,7 +80,7 @@ func (s *UserService) Login(req *models.LoginRequest) (string, *models.UserRespo
 
 	token, err := utils.GenerateJWT(
 		user.ID, 
-		user.Email, 
+		user.Role, 
 		s.config.JWT.Secret, 
 		s.config.JWT.ExpirationHours,
 	)
@@ -99,4 +104,18 @@ func (s *UserService) GetUserByID(id uint) (*models.UserResponse, error) {
 
 	response := user.ToResponse()
 	return &response, nil
+}
+
+func (s *UserService) GetAllUsers() ([]models.UserResponse, error) {
+	users, err := s.userRepo.List(50, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []models.UserResponse
+	for _, user := range users {
+		responses = append(responses, user.ToResponse())
+	}
+
+	return responses, nil
 }

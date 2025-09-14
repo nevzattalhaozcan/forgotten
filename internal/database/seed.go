@@ -17,6 +17,7 @@ type SeedUser struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	IsActive  bool   `json:"is_active"`
+	Role      string `json:"role"`
 }
 
 type SeedData struct {
@@ -60,6 +61,7 @@ func Seed(db *gorm.DB) error {
 			FirstName: seedUser.FirstName,
 			LastName:  seedUser.LastName,
 			IsActive:  seedUser.IsActive,
+			Role:      seedUser.Role,
 		}
 
 		if err := db.Create(user).Error; err != nil {

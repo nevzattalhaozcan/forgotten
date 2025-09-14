@@ -141,3 +141,19 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
+// @Summary Get all users
+// @Description Retrieve a list of all users
+// @Tags Users
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Users retrieved successfully"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/users [get]
+func (h *UserHandler) GetAllUsers(c *gin.Context) {
+	users, err := h.userService.GetAllUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": users})
+}

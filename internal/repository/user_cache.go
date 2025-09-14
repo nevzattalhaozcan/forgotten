@@ -32,6 +32,7 @@ type userCacheEntry struct {
     FirstName    string    `json:"first_name"`
     LastName     string    `json:"last_name"`
     IsActive     bool      `json:"is_active"`
+	Role         string    `json:"role"`
     CreatedAt    time.Time `json:"created_at"`
     UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -45,6 +46,7 @@ func toCache(user *models.User) *userCacheEntry {
         FirstName:    user.FirstName,
         LastName:     user.LastName,
         IsActive:     user.IsActive,
+        Role:         user.Role,
         CreatedAt:    user.CreatedAt,
         UpdatedAt:    user.UpdatedAt,
     }
@@ -59,6 +61,7 @@ func toModel(entry *userCacheEntry) *models.User {
         FirstName:    entry.FirstName,
         LastName:     entry.LastName,
         IsActive:     entry.IsActive,
+        Role:         entry.Role,
         CreatedAt:    entry.CreatedAt,
         UpdatedAt:    entry.UpdatedAt,
     }
@@ -102,6 +105,10 @@ func (r *cachedUserRepository) Create(user *models.User) error {
 	}
 
 	ctx := context.Background()
+
+	if saved, err := r.base.GetByID(user.ID); err == nil && saved != nil {
+		user = saved
+	}
 	
 	r.set(ctx, r.keyByID(user.ID), user)
 	r.set(ctx, r.keyByEmail(user.Email), user)

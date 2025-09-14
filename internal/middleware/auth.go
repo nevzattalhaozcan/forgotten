@@ -28,7 +28,7 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		c.Set("user_id", claims.UserID)
-		c.Set("user_email", claims.Email)
+		c.Set("role", claims.Role)
 		c.Next()
 	}
 }
@@ -69,5 +69,33 @@ func AuthorizeSelf() gin.HandlerFunc {
 		}
 
 		c.Next()
+	}
+}
+
+func RestrictToRoles(allowedRoles ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userRoleRaw, exists := c.Get("role")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+			c.Abort()
+			return
+		}
+
+		userRole, ok := userRoleRaw.(string)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user role in context"})
+			c.Abort()
+			return
+		}
+
+		for _, role := range allowedRoles {
+			if userRole == role {
+				c.Next()
+				return
+			}
+		}
+
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		c.Abort()
 	}
 }
