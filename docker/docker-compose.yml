@@ -60,11 +60,14 @@ services:
 
   redis:
     image: redis:7-alpine
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "yes"]
     ports:
       - "6379:6379"
     restart: unless-stopped
     networks:
       - forgotten-network
+    volumes:
+      - redis_data:/data  
 
   prometheus:
     image: prom/prometheus:latest

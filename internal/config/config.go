@@ -13,6 +13,7 @@ type Config struct {
 	Database DatabaseConfig
 	JWT JWTConfig
 	App AppConfig
+	Redis RedisConfig
 }
 
 type ServerConfig struct {
@@ -35,6 +36,15 @@ type JWTConfig struct {
 type AppConfig struct {
 	Name string
 	Version string
+}
+
+type RedisConfig struct {
+	Enabled bool
+	Addr string
+	Password string
+	DB int
+	TLS bool
+	CacheTTLSeconds int
 }
 
 func Load() *Config {
@@ -61,6 +71,14 @@ func Load() *Config {
 			Name: getEnv("APP_NAME", "Forgotten"),
 			Version: getEnv("APP_VERSION", "1.0.0"),
 		},
+		Redis: RedisConfig{
+			Enabled: getEnvAsBool("REDIS_ENABLED", false),
+			Addr: getEnv("REDIS_ADDR", "localhost:6379"),
+			Password: getEnv("REDIS_PASSWORD", ""),
+			DB: getEnvAsInt("REDIS_DB", 0),
+			TLS: getEnvAsBool("REDIS_TLS", false),
+			CacheTTLSeconds: getEnvAsInt("REDIS_CACHE_TTL_SECONDS", 600),
+		},
 	}
 }
 
@@ -77,6 +95,20 @@ func getEnvAsInt(name string, defaultVal int) int {
 			return intValue
 		}
 		log.Printf("invalid integer value for %s: %s. using default: %d", name, value, defaultVal)
+	}
+	return defaultVal
+}
+
+func getEnvAsBool(name string, defaultVal bool) bool {
+	if value := os.Getenv(name); value != "" {
+		switch value {
+			case "1", "true", "TRUE", "True", "yes", "YES", "Yes", "on", "ON", "On":
+				return true
+			case "0", "false", "FALSE", "False", "no", "NO", "No", "off", "OFF", "Off":
+				return false
+			default:
+				log.Printf("invalid boolean value for %s: %s. using default: %t", name, value, defaultVal)
+		}
 	}
 	return defaultVal
 }

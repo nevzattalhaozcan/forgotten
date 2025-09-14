@@ -1,11 +1,16 @@
 package handlers
 
 import (
-	_ "github.com/nevzattalhaozcan/forgotten/docs" // swag doc import
-	"github.com/swaggo/gin-swagger"
-	"github.com/swaggo/files"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
+	"time"
+
+	_ "github.com/nevzattalhaozcan/forgotten/docs" // swag doc import
+	"github.com/nevzattalhaozcan/forgotten/pkg/cache"
+	"github.com/nevzattalhaozcan/forgotten/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/redis/go-redis/v9"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -41,7 +46,28 @@ func (s *Server) setupRoutes() {
 
 	s.router.HEAD("/health", func(c *gin.Context) {	c.Status(http.StatusOK)	})
 
-	userRepo := repository.NewUserRepository(s.db)
+	var userRepo repository.UserRepository = repository.NewUserRepository(s.db)
+
+	var rdbAvailable bool
+	var ttl time.Duration
+	var rdb *redis.Client
+
+	if s.config.Redis.Enabled {
+		client, err := cache.NewRedisClient(&s.config.Redis)
+		if err != nil {
+			logger.Warn("Redis enabled but connection failed, continuing without cache")
+		} else {
+			rdb = client
+			rdbAvailable = true
+			ttl = time.Duration(s.config.Redis.CacheTTLSeconds) * time.Second
+		}
+	}
+
+	if rdbAvailable {
+		userRepo = repository.NewCachedUserRepository(userRepo, rdb, ttl)
+		logger.Info("User repository caching enabled")
+	}
+
 	userService := services.NewUserService(userRepo, s.config)
 	userHandler := NewUserHandler(userService)
 
