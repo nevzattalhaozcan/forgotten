@@ -51,6 +51,11 @@ func (s *UserService) Register(req *models.RegisterRequest) (*models.UserRespons
 		LastName:  req.LastName,
 		IsActive: true,
 		Role: req.Role,
+		AvatarURL: &req.AvatarURL,
+		Location: &req.Location,
+		FavoriteGenres: req.FavoriteGenres,
+		Bio: &req.Bio,
+		ReadingGoal: req.ReadingGoal,
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
@@ -79,7 +84,8 @@ func (s *UserService) Login(req *models.LoginRequest) (string, *models.UserRespo
 	}
 
 	token, err := utils.GenerateJWT(
-		user.ID, 
+		user.ID,
+		user.Email, 
 		user.Role, 
 		s.config.JWT.Secret, 
 		s.config.JWT.ExpirationHours,

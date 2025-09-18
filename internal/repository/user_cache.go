@@ -6,14 +6,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
 	"github.com/redis/go-redis/v9"
 )
 
 type cachedUserRepository struct {
 	base UserRepository
-	rdb *redis.Client
-	ttl time.Duration
+	rdb  *redis.Client
+	ttl  time.Duration
 }
 
 func NewCachedUserRepository(base UserRepository, rdb *redis.Client, ttl time.Duration) UserRepository {
@@ -21,50 +22,81 @@ func NewCachedUserRepository(base UserRepository, rdb *redis.Client, ttl time.Du
 }
 
 func (r *cachedUserRepository) keyByID(id uint) string { return fmt.Sprintf("user:id:%d", id) }
-func (r *cachedUserRepository) keyByEmail(email string) string { return fmt.Sprintf("user:email:%s", email) }
-func (r *cachedUserRepository) keyByUsername(username string) string { return fmt.Sprintf("user:username:%s", username) }
+func (r *cachedUserRepository) keyByEmail(email string) string {
+	return fmt.Sprintf("user:email:%s", email)
+}
+func (r *cachedUserRepository) keyByUsername(username string) string {
+	return fmt.Sprintf("user:username:%s", username)
+}
 
 type userCacheEntry struct {
-	ID           uint      `json:"id"`
-    Username     string    `json:"username"`
-    Email        string    `json:"email"`
-    PasswordHash string    `json:"password_hash"`
-    FirstName    string    `json:"first_name"`
-    LastName     string    `json:"last_name"`
-    IsActive     bool      `json:"is_active"`
-	Role         string    `json:"role"`
-    CreatedAt    time.Time `json:"created_at"`
-    UpdatedAt    time.Time `json:"updated_at"`
+	ID             uint           `json:"id"`
+	Username       string         `json:"username"`
+	Email          string         `json:"email"`
+	PasswordHash   string         `json:"password_hash"`
+	FirstName      string         `json:"first_name"`
+	LastName       string         `json:"last_name"`
+	IsActive       bool           `json:"is_active"`
+	Role           string         `json:"role"`
+	AvatarURL      *string        `json:"avatar_url"`
+	Location       *string        `json:"location"`
+	FavoriteGenres pq.StringArray `json:"favorite_genres"`
+	Bio            *string        `json:"bio"`
+	ReadingGoal    *int           `json:"reading_goal"`
+	BooksRead      int            `json:"books_read"`
+	Badges         pq.StringArray `json:"badges"`
+	IsOnline       bool           `json:"is_online"`
+	LastSeen       *time.Time     `json:"last_seen"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
 }
 
 func toCache(user *models.User) *userCacheEntry {
 	return &userCacheEntry{
-        ID:           user.ID,
-        Username:     user.Username,
-        Email:        user.Email,
-        PasswordHash: user.PasswordHash,
-        FirstName:    user.FirstName,
-        LastName:     user.LastName,
-        IsActive:     user.IsActive,
-        Role:         user.Role,
-        CreatedAt:    user.CreatedAt,
-        UpdatedAt:    user.UpdatedAt,
-    }
+		ID:             user.ID,
+		Username:       user.Username,
+		Email:          user.Email,
+		PasswordHash:   user.PasswordHash,
+		FirstName:      user.FirstName,
+		LastName:       user.LastName,
+		IsActive:       user.IsActive,
+		Role:           user.Role,
+		AvatarURL:      user.AvatarURL,
+		Location:       user.Location,
+		FavoriteGenres: user.FavoriteGenres,
+		Bio:            user.Bio,
+		ReadingGoal:    &user.ReadingGoal,
+		BooksRead:      user.BooksRead,
+		Badges:         user.Badges,
+		IsOnline:       user.IsOnline,
+		LastSeen:       user.LastSeen,
+		CreatedAt:      user.CreatedAt,
+		UpdatedAt:      user.UpdatedAt,
+	}
 }
 
 func toModel(entry *userCacheEntry) *models.User {
 	return &models.User{
-        ID:           entry.ID,
-		Username:     entry.Username,
-        Email:        entry.Email,
-        PasswordHash: entry.PasswordHash,
-        FirstName:    entry.FirstName,
-        LastName:     entry.LastName,
-        IsActive:     entry.IsActive,
-        Role:         entry.Role,
-        CreatedAt:    entry.CreatedAt,
-        UpdatedAt:    entry.UpdatedAt,
-    }
+		ID:             entry.ID,
+		Username:       entry.Username,
+		Email:          entry.Email,
+		PasswordHash:   entry.PasswordHash,
+		FirstName:      entry.FirstName,
+		LastName:       entry.LastName,
+		IsActive:       entry.IsActive,
+		Role:           entry.Role,
+		AvatarURL:      entry.AvatarURL,
+		Location:       entry.Location,
+		FavoriteGenres: entry.FavoriteGenres,
+		Bio:            entry.Bio,
+		ReadingGoal:    func() int { if entry.ReadingGoal != nil { return *entry.ReadingGoal }; return 0 }(),
+		BooksRead:      entry.BooksRead,
+		Badges:         entry.Badges,
+		IsOnline:       entry.IsOnline,
+		LastSeen:       entry.LastSeen,
+		CreatedAt:      entry.CreatedAt,
+		UpdatedAt:      entry.UpdatedAt,
+	}
 }
 
 func (r *cachedUserRepository) get(ctx context.Context, key string) (*models.User, error) {
@@ -109,11 +141,11 @@ func (r *cachedUserRepository) Create(user *models.User) error {
 	if saved, err := r.base.GetByID(user.ID); err == nil && saved != nil {
 		user = saved
 	}
-	
+
 	r.set(ctx, r.keyByID(user.ID), user)
 	r.set(ctx, r.keyByEmail(user.Email), user)
 	r.set(ctx, r.keyByUsername(user.Username), user)
-	
+
 	return nil
 }
 

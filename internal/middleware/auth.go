@@ -28,11 +28,16 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		c.Set("user_id", claims.UserID)
-		c.Set("role", claims.Role)
+		c.Set("user_email", claims.Email)
+		c.Set("user_role", claims.Role)
 		c.Next()
 	}
 }
 
+/** Ensure that the user can only access their own resources
+ * If the user ID in the path parameter does not match the user ID in the token, return 403 Forbidden
+ * If there is no user ID in the path parameter, allow access (for routes that do not require a specific user ID)
+ */
 func AuthorizeSelf() gin.HandlerFunc {
 	return func (c *gin.Context) {
 		ctxUserIDRaw, exists := c.Get("user_id")
@@ -72,9 +77,12 @@ func AuthorizeSelf() gin.HandlerFunc {
 	}
 }
 
+/** Restrict access to certain roles
+ * @param allowedRoles - list of roles that are allowed to access the route
+ */
 func RestrictToRoles(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userRoleRaw, exists := c.Get("role")
+		userRoleRaw, exists := c.Get("user_role")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
 			c.Abort()

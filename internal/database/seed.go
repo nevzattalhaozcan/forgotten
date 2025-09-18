@@ -11,13 +11,18 @@ import (
 )
 
 type SeedUser struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	IsActive  bool   `json:"is_active"`
-	Role      string `json:"role"`
+	Username       string   `json:"username"`
+	Email          string   `json:"email"`
+	Password       string   `json:"password"`
+	FirstName      string   `json:"first_name"`
+	LastName       string   `json:"last_name"`
+	IsActive       bool     `json:"is_active"`
+	Role           string   `json:"role"`
+	AvatarURL      string   `json:"avatar_url"`
+	Bio            string   `json:"bio"`
+	Location       string   `json:"location"`
+	FavoriteGenres []string `json:"favorite_genre"`
+	ReadingGoal    int      `json:"reading_goal"`
 }
 
 type SeedData struct {
@@ -26,9 +31,9 @@ type SeedData struct {
 
 func Seed(db *gorm.DB) error {
 	log.Println("starting database seeding")
-	
+
 	var userCount int64
-	
+
 	db.Model(&models.User{}).Count(&userCount)
 	if userCount > 0 {
 		log.Println("database already seeded")
@@ -55,13 +60,18 @@ func Seed(db *gorm.DB) error {
 		}
 
 		user := &models.User{
-			Username:  seedUser.Username,
-			Email:     seedUser.Email,
-			PasswordHash:  hashedPassword,
-			FirstName: seedUser.FirstName,
-			LastName:  seedUser.LastName,
-			IsActive:  seedUser.IsActive,
-			Role:      seedUser.Role,
+			Username:       seedUser.Username,
+			Email:          seedUser.Email,
+			PasswordHash:   hashedPassword,
+			FirstName:      seedUser.FirstName,
+			LastName:       seedUser.LastName,
+			IsActive:       seedUser.IsActive,
+			Role:           seedUser.Role,
+			AvatarURL:      &seedUser.AvatarURL,
+			Bio:            &seedUser.Bio,
+			Location:       &seedUser.Location,
+			FavoriteGenres: seedUser.FavoriteGenres,
+			ReadingGoal:    seedUser.ReadingGoal,
 		}
 
 		if err := db.Create(user).Error; err != nil {

@@ -15,9 +15,9 @@ type Post struct {
 	LikesCount    int        `json:"likes_count" gorm:"default:0"`
 	CommentsCount int        `json:"comments_count" gorm:"default:0"`
 	ViewsCount    int        `json:"views_count" gorm:"default:0"`
-	AuthorID      uint       `json:"author_id"`
+	UserID        uint       `json:"user_id"`
 	ClubID        uint       `json:"club_id"`
-	Author        User       `json:"author" gorm:"foreignKey:AuthorID"`
+	User          User       `json:"user" gorm:"foreignKey:UserID"`
 	Comments      []Comment  `json:"comments,omitempty" gorm:"foreignKey:PostID"`
 	Likes         []PostLike `json:"likes,omitempty" gorm:"foreignKey:PostID"`
 

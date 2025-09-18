@@ -10,7 +10,7 @@ import (
 
 type CurrentBook struct {
 	Title    string  `json:"title"`
-	Author   *string `json:"author,omitempty"`
+	User     *string `json:"user,omitempty"`
 	CoverURL *string `json:"cover_url,omitempty"`
 	BookID   *uint   `json:"book_id,omitempty"`
 	Progress *int    `json:"progress,omitempty"`

@@ -9,7 +9,7 @@ import (
 type Book struct {
 	ID            uint     `json:"id" gorm:"primaryKey"`
 	Title         string   `json:"title" gorm:"size:255;not null"`
-	Author        *string  `json:"author,omitempty" gorm:"size:255"`
+	User          *string  `json:"user,omitempty" gorm:"size:255"`
 	CoverURL      *string  `json:"cover_url,omitempty" gorm:"type:text"`
 	Genre         *string  `json:"genre,omitempty" gorm:"size:100"`
 	Pages         *int     `json:"pages,omitempty"`

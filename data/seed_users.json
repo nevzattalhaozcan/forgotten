@@ -7,7 +7,12 @@
       "first_name": "John",
       "last_name": "Doe",
       "is_active": true,
-      "role": "admin"
+      "role": "admin",
+      "avatar_url": "https://i.pravatar.cc/150?img=3",
+      "bio": "Just a regular John Doe.",
+      "location": "Ağrı, Turkey",
+      "favorite_genre": [ "Science Fiction", "Fantasy" ],
+      "reading_goal": 20
     },
     {
       "username": "janedoe",
@@ -16,7 +21,12 @@
       "first_name": "Jane",
       "last_name": "Doe",
       "is_active": true,
-      "role": "user"
+      "role": "user",
+      "avatar_url": "https://i.pravatar.cc/150?img=5",
+      "bio": "Avid reader and book lover.",
+      "location": "Istanbul, Turkey",
+      "favorite_genre": [ "Mystery", "Romance" ],
+      "reading_goal": 15
     },
     {
       "username": "testuser1",
@@ -25,7 +35,12 @@
       "first_name": "Test",
       "last_name": "User1",
       "is_active": true,
-      "role": "user"
+      "role": "user",
+      "avatar_url": "https://i.pravatar.cc/150?img=10",
+      "bio": "Just a test user.",
+      "location": "Ankara, Turkey",
+      "favorite_genre": [ "Non-Fiction", "Biography" ],
+      "reading_goal": 10
     },
     {
       "username": "testuser2",
@@ -34,7 +49,12 @@
       "first_name": "Test",
       "last_name": "User2",
       "is_active": true,
-      "role": "user"
+      "role": "user",
+      "avatar_url": "https://i.pravatar.cc/150?img=15",
+      "bio": "Another test user.",
+      "location": "Izmir, Turkey",
+      "favorite_genre": [ "Horror", "Thriller" ],
+      "reading_goal": 5
     },
     {
       "username": "inactiveuser",
@@ -43,7 +63,12 @@
       "first_name": "Test",
       "last_name": "User2",
       "is_active": false,
-      "role": "user"
+      "role": "user",
+      "avatar_url": "https://i.pravatar.cc/150?img=20",
+      "bio": "Inactive user account.",
+      "location": "Bursa, Turkey",
+      "favorite_genre": [ "Poetry", "Drama" ],
+      "reading_goal": 0
     },
     {
       "username": "admin",
@@ -52,7 +77,12 @@
       "first_name": "Admin",
       "last_name": "User",
       "is_active": true,
-      "role": "admin"
+      "role": "admin",
+      "avatar_url": "https://i.pravatar.cc/150?img=25",
+      "bio": "Administrator of the platform.",
+      "location": "Metropolis, Earth",
+      "favorite_genre": [ "All" ],
+      "reading_goal": 50
     },
     {
       "username": "qa_tester",
@@ -61,7 +91,12 @@
       "first_name": "QA",
       "last_name": "Tester",
       "is_active": true,
-      "role": "user"
+      "role": "user",
+      "avatar_url": "https://i.pravatar.cc/150?img=30",
+      "bio": "Quality Assurance Tester.",
+      "location": "Testville, Testland",
+      "favorite_genre": [ "Technical", "Educational" ],
+      "reading_goal": 25
     }
   ]
 }
