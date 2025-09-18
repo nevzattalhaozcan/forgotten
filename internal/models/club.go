@@ -10,7 +10,7 @@ import (
 
 type CurrentBook struct {
 	Title    string  `json:"title"`
-	User     *string `json:"user,omitempty"`
+	Author     *string `json:"author,omitempty"`
 	CoverURL *string `json:"cover_url,omitempty"`
 	BookID   *uint   `json:"book_id,omitempty"`
 	Progress *int    `json:"progress,omitempty"`
@@ -65,8 +65,6 @@ type CreateClubRequest struct {
 	IsPrivate     bool           `json:"is_private"`
 	MaxMembers    int            `json:"max_members" validate:"gte=1,lte=1000"`
 	Tags          pq.StringArray `json:"tags" validate:"dive,max=50"`
-	CurrentBook   *CurrentBook   `json:"current_book"`
-	NextMeeting   *NextMeeting   `json:"next_meeting"`
 }
 
 type UpdateClubRequest struct {
