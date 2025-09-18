@@ -157,3 +157,74 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"users": users})
 }
+
+// @Summary Update user
+// @Description Update user information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param request body models.UpdateUserRequest true "Update user data"
+// @Success 200 {object} map[string]interface{} "User updated successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "User not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Security Bearer
+// @Router /api/v1/users/{id} [put]
+func (h *UserHandler) UpdateUser(c *gin.Context) {
+	var req models.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found in context"})
+		return
+	}
+
+	user, err := h.userService.UpdateUser(userID.(uint), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "user updated successfully",
+		"user":    user,
+	})
+}
+
+// @Summary Delete user
+// @Description Delete a user by ID
+// @Tags Users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 204 {object} nil "User deleted successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "User not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Security Bearer
+// @Router /api/v1/users/{id} [delete]
+func (h *UserHandler) DeleteUser(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	err = h.userService.DeleteUser(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}

@@ -20,9 +20,9 @@ type User struct {
 	AvatarURL      *string        `json:"avatar_url" gorm:"type:text"`
 	Location       *string        `json:"location" gorm:"size:255"`
 	FavoriteGenres pq.StringArray `json:"favorite_genres" gorm:"type:text[]"`
-	BooksRead      int            `json:"books_read" gorm:"default:0"`
 	Bio            *string        `json:"bio" gorm:"type:text"`
 	ReadingGoal    int            `json:"reading_goal" gorm:"default:0"`
+	BooksRead      int            `json:"books_read" gorm:"default:0"`
 	Badges         pq.StringArray `json:"badges" gorm:"type:text[]"`
 	IsOnline       bool           `json:"is_online" gorm:"default:false"`
 	LastSeen       *time.Time     `json:"last_seen"`

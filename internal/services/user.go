@@ -125,3 +125,95 @@ func (s *UserService) GetAllUsers() ([]models.UserResponse, error) {
 
 	return responses, nil
 }
+
+func (s *UserService) UpdateUser(id uint, req *models.UpdateUserRequest) (*models.UserResponse, error) {
+	user, err := s.userRepo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	if req.Username != nil && *req.Username != user.Username {
+		existingUser, err := s.userRepo.GetByUsername(*req.Username)
+		if err == nil && existingUser.ID != user.ID {
+			return nil, errors.New("username already exists")
+		}
+		user.Username = *req.Username
+	}
+
+	if req.Email != nil && *req.Email != user.Email {
+		existingUser, err := s.userRepo.GetByEmail(*req.Email)
+		if err == nil && existingUser.ID != user.ID {
+			return nil, errors.New("email already exists")
+		}
+		user.Email = *req.Email
+	}
+
+	if req.Password != nil {
+		hashedPassword, err := utils.HashPassword(*req.Password)
+		if err != nil {
+			return nil, errors.New("failed to hash password")
+		}
+		user.PasswordHash = hashedPassword
+	}
+
+	if req.FirstName != nil {
+		user.FirstName = *req.FirstName
+	}
+
+	if req.LastName != nil {
+		user.LastName = *req.LastName
+	}
+
+	if req.Role != nil {
+		user.Role = *req.Role
+	}
+
+	if req.IsActive != nil {
+		user.IsActive = *req.IsActive
+	}
+
+	if req.AvatarURL != nil {
+		user.AvatarURL = req.AvatarURL
+	}
+
+	if req.Location != nil {
+		user.Location = req.Location
+	}
+
+	if req.FavoriteGenres != nil {
+		user.FavoriteGenres = *req.FavoriteGenres
+	}
+
+	if req.Bio != nil {
+		user.Bio = req.Bio
+	}
+
+	if req.ReadingGoal != nil {
+		user.ReadingGoal = *req.ReadingGoal
+	}
+
+	if err := s.userRepo.Update(user); err != nil {
+		return nil, errors.New("failed to update user")
+	}
+
+	response := user.ToResponse()
+	return &response, nil
+}
+
+func (s *UserService) DeleteUser(id uint) error {
+	err := s.userRepo.Delete(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("user not found")
+		}
+		return err
+	}
+
+	// decrement user count metric
+	metrics.IncrementUserCount(-1)
+
+	return nil
+}
