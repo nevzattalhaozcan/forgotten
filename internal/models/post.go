@@ -58,3 +58,42 @@ type LikePostRequest struct {
 type UnlikePostRequest struct {
 	PostID uint `json:"post_id" validate:"required"`
 }
+
+type PostResponse struct {
+	ID            uint       `json:"id"`
+	Title         string     `json:"title"`
+	Content       string     `json:"content"`
+	Type          string     `json:"type"`
+	IsPinned      bool       `json:"is_pinned"`
+	LikesCount    int        `json:"likes_count"`
+	CommentsCount int        `json:"comments_count"`
+	ViewsCount    int        `json:"views_count"`
+	UserID        uint       `json:"user_id"`
+	ClubID        uint       `json:"club_id"`
+	User          User       `json:"user"`
+	Comments      []Comment  `json:"comments,omitempty"`
+	Likes         []PostLike `json:"likes,omitempty"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (p *Post) ToResponse() PostResponse {
+	return PostResponse{
+		ID:            p.ID,
+		Title:         p.Title,
+		Content:       p.Content,
+		Type:          p.Type,
+		IsPinned:      p.IsPinned,
+		LikesCount:    p.LikesCount,
+		CommentsCount: p.CommentsCount,
+		ViewsCount:    p.ViewsCount,
+		UserID:        p.UserID,
+		ClubID:        p.ClubID,
+		User:          p.User,
+		Comments:      p.Comments,
+		Likes:         p.Likes,
+		CreatedAt:     p.CreatedAt,
+		UpdatedAt:     p.UpdatedAt,
+	}
+}

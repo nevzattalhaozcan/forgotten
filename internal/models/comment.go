@@ -47,3 +47,30 @@ type LikeCommentRequest struct {
 type UnlikeCommentRequest struct {
 	CommentID uint `json:"comment_id" validate:"required"`
 }
+
+type CommentResponse struct {
+	ID         uint          `json:"id"`
+	PostID     uint          `json:"post_id"`
+	UserID     uint          `json:"user_id"`
+	Content    string        `json:"content"`
+	LikesCount int           `json:"likes_count"`
+	User       User          `json:"user"`
+	Likes      []CommentLike `json:"likes,omitempty"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (c *Comment) ToResponse() CommentResponse {
+	return CommentResponse{
+		ID:         c.ID,
+		PostID:     c.PostID,
+		UserID:     c.UserID,
+		Content:    c.Content,
+		LikesCount: c.LikesCount,
+		User:       c.User,
+		Likes:      c.Likes,
+		CreatedAt:  c.CreatedAt,
+		UpdatedAt:  c.UpdatedAt,
+	}
+}

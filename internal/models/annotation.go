@@ -61,3 +61,40 @@ type LikeAnnotationRequest struct {
 type UnlikeAnnotationRequest struct {
 	AnnotationID uint `json:"annotation_id" validate:"required"`
 }
+
+type AnnotationResponse struct {
+	ID         uint           `json:"id"`
+	BookID     uint           `json:"book_id"`
+	UserID     uint           `json:"user_id"`
+	Quote      string         `json:"quote"`
+	PageNumber *int           `json:"page,omitempty"`
+	Thoughts   string         `json:"thoughts,omitempty"`
+	IsPublic   bool           `json:"is_public"`
+	LikesCount int            `json:"likes_count"`
+	Tags       []string       `json:"tags,omitempty"`
+	Book       BookResponse   `json:"book"`
+	User       UserResponse   `json:"user"`
+	Likes      []AnnotationLike `json:"likes,omitempty"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (a *Annotation) ToResponse() AnnotationResponse {
+	return AnnotationResponse{
+		ID:         a.ID,
+		BookID:     a.BookID,
+		UserID:     a.UserID,
+		Quote:      a.Quote,
+		PageNumber: a.PageNumber,
+		Thoughts:   a.Thoughts,
+		IsPublic:   a.IsPublic,
+		LikesCount: a.LikesCount,
+		Tags:       a.Tags,
+		Book:       a.Book.ToResponse(),
+		User:       a.User.ToResponse(),
+		Likes:      a.Likes,
+		CreatedAt:  a.CreatedAt,
+		UpdatedAt:  a.UpdatedAt,
+	}
+}

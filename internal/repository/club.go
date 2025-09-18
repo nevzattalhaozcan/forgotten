@@ -26,6 +26,15 @@ func (r *ClubRepository) GetByID(id uint) (*models.Club, error) {
 	return &club, nil
 }
 
+func (r *ClubRepository) GetByName(name string) (*models.Club, error) {
+	var club models.Club
+	err := r.db.Where("name = ?", name).First(&club).Error
+	if err != nil {
+		return nil, err
+	}
+	return &club, nil
+}
+
 func (r *ClubRepository) Update(club *models.Club) error {
 	return r.db.Save(club).Error
 }

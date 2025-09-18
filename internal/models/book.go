@@ -45,3 +45,36 @@ type UpdateBookRequest struct {
 	Description   *string  `json:"description,omitempty" validate:"omitempty,min=1"`
 	Rating        *float32 `json:"rating,omitempty" validate:"omitempty,gte=0,lte=5"`
 }
+
+type BookResponse struct {
+	ID            uint     `json:"id"`
+	Title         string   `json:"title"`
+	Author       *string  `json:"author,omitempty"`
+	CoverURL      *string  `json:"cover_url,omitempty"`
+	Genre         *string  `json:"genre,omitempty"`
+	Pages         *int     `json:"pages,omitempty"`
+	PublishedYear *int     `json:"published_year,omitempty"`
+	ISBN          *string  `json:"isbn,omitempty"`
+	Description   *string  `json:"description,omitempty"`
+	Rating        *float32 `json:"rating,omitempty"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (b *Book) ToResponse() BookResponse {
+	return BookResponse{
+		ID:            b.ID,
+		Title:         b.Title,
+		Author:       b.Author,
+		CoverURL:      b.CoverURL,
+		Genre:         b.Genre,
+		Pages:         b.Pages,
+		PublishedYear: b.PublishedYear,
+		ISBN:          b.ISBN,
+		Description:   b.Description,
+		Rating:        b.Rating,
+		CreatedAt:     b.CreatedAt,
+		UpdatedAt:     b.UpdatedAt,
+	}
+}

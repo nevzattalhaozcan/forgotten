@@ -79,3 +79,66 @@ type UpdateClubRequest struct {
 	CurrentBook   *CurrentBook    `json:"current_book"`
 	NextMeeting   *NextMeeting    `json:"next_meeting"`
 }
+
+type ClubResponse struct {
+	ID            uint            `json:"id"`
+	Name          string          `json:"name"`
+	Description   string          `json:"description"`
+	Location      *string         `json:"location,omitempty"`
+	Genre         *string         `json:"genre,omitempty"`
+	CoverImageURL *string         `json:"cover_image_url,omitempty"`
+	IsPrivate     bool            `json:"is_private"`
+	MaxMembers    int             `json:"max_members"`
+	MembersCount  int             `json:"members_count"`
+	Rating        float32         `json:"rating"`
+	Tags          pq.StringArray  `json:"tags"`
+	OwnerID       uint            `json:"owner_id"`
+	Owner         UserResponse    `json:"owner"`
+	CurrentBook   *CurrentBook    `json:"current_book,omitempty"`
+	NextMeeting   *NextMeeting    `json:"next_meeting,omitempty"`
+	Members       []ClubMembership `json:"members,omitempty"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+}
+
+func (c *Club) ToResponse() ClubResponse {
+	var currentBook *CurrentBook
+	if len(c.CurrentBook) > 0 {
+		var cb CurrentBook
+		if err := json.Unmarshal(c.CurrentBook, &cb); err == nil {
+			currentBook = &cb
+		}
+	}
+
+	var nextMeeting *NextMeeting
+	if len(c.NextMeeting) > 0 {
+		var nm NextMeeting
+		if err := json.Unmarshal(c.NextMeeting, &nm); err == nil {
+			nextMeeting = &nm
+		}
+	}
+
+	members := make([]ClubMembership, len(c.Members))
+	copy(members, c.Members)
+
+	return ClubResponse{
+		ID:            c.ID,
+		Name:          c.Name,
+		Description:   c.Description,
+		Location:      c.Location,
+		Genre:         c.Genre,
+		CoverImageURL: c.CoverImageURL,
+		IsPrivate:     c.IsPrivate,
+		MaxMembers:    c.MaxMembers,
+		MembersCount:  c.MembersCount,
+		Rating:        c.Rating,
+		Tags:          c.Tags,
+		OwnerID:       c.OwnerID,
+		Owner:         c.Owner.ToResponse(),
+		CurrentBook:   currentBook,
+		NextMeeting:   nextMeeting,
+		Members:       members,
+		CreatedAt:     c.CreatedAt,
+		UpdatedAt:     c.UpdatedAt,
+	}
+}	
