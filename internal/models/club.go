@@ -10,7 +10,7 @@ import (
 
 type CurrentBook struct {
 	Title    string  `json:"title"`
-	Author     *string `json:"author,omitempty"`
+	Author   *string `json:"author,omitempty"`
 	CoverURL *string `json:"cover_url,omitempty"`
 	BookID   *uint   `json:"book_id,omitempty"`
 	Progress *int    `json:"progress,omitempty"`
@@ -23,12 +23,14 @@ type NextMeeting struct {
 }
 
 type ClubMembership struct {
-	ID       uint      `json:"id" gorm:"primaryKey"`
-	UserID   uint      `json:"user_id"`
-	ClubID   uint      `json:"club_id"`
-	Role     string    `json:"role" gorm:"default:'member'"`
-	JoinedAt time.Time `json:"joined_at" gorm:"autoCreateTime"`
-	User     User      `json:"user" gorm:"foreignKey:UserID"`
+	ID         uint      `json:"id" gorm:"primaryKey"`
+	UserID     uint      `json:"user_id"`
+	ClubID     uint      `json:"club_id"`
+	Role       string    `json:"role" gorm:"default:'member'"`
+	IsApproved bool      `json:"is_approved" gorm:"default:false"`
+	JoinedAt   time.Time `json:"joined_at" gorm:"autoCreateTime"`
+	User       User      `json:"user" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Club       Club      `json:"-" gorm:"foreignKey:ClubID;constraint:OnDelete:CASCADE"`
 }
 
 type Club struct {
@@ -48,7 +50,7 @@ type Club struct {
 	NextMeeting   json.RawMessage  `json:"next_meeting" gorm:"type:jsonb"`
 	Owner         User             `json:"owner" gorm:"foreignKey:OwnerID"`
 	Moderators    []User           `json:"moderators" gorm:"many2many:club_moderators;"`
-	Members       []ClubMembership `json:"members" gorm:"foreignKey:ClubID"`
+	Members       []ClubMembership `json:"members" gorm:"foreignKey:ClubID;constraint:OnDelete:CASCADE"`
 	Posts         []Post           `json:"posts,omitempty" gorm:"foreignKey:ClubID"`
 
 	CreatedAt time.Time      `json:"created_at"`
@@ -80,25 +82,41 @@ type UpdateClubRequest struct {
 	NextMeeting   *NextMeeting    `json:"next_meeting"`
 }
 
+type UpdateClubMembershipRequest struct {
+	UserID     *uint   `json:"user_id" validate:"omitempty"`
+	Role       *string `json:"role" validate:"omitempty,oneof=member moderator admin"`
+	IsApproved *bool   `json:"is_approved" validate:"omitempty"`
+}
+
+type ClubMembershipResponse struct {
+	ID         uint         `json:"id"`
+	UserID     uint         `json:"user_id"`
+	ClubID     uint         `json:"club_id"`
+	Role       string       `json:"role"`
+	IsApproved bool         `json:"is_approved"`
+	JoinedAt   time.Time    `json:"joined_at"`
+	User       UserResponse `json:"user"`
+}
+
 type ClubResponse struct {
-	ID            uint            `json:"id"`
-	Name          string          `json:"name"`
-	Description   string          `json:"description"`
-	Location      *string         `json:"location,omitempty"`
-	Genre         *string         `json:"genre,omitempty"`
-	CoverImageURL *string         `json:"cover_image_url,omitempty"`
-	IsPrivate     bool            `json:"is_private"`
-	MaxMembers    int             `json:"max_members"`
-	MembersCount  int             `json:"members_count"`
-	Rating        float32         `json:"rating"`
-	Tags          pq.StringArray  `json:"tags"`
-	OwnerID       uint            `json:"owner_id"`
-	Owner         UserResponse    `json:"owner"`
-	CurrentBook   *CurrentBook    `json:"current_book,omitempty"`
-	NextMeeting   *NextMeeting    `json:"next_meeting,omitempty"`
+	ID            uint             `json:"id"`
+	Name          string           `json:"name"`
+	Description   string           `json:"description"`
+	Location      *string          `json:"location,omitempty"`
+	Genre         *string          `json:"genre,omitempty"`
+	CoverImageURL *string          `json:"cover_image_url,omitempty"`
+	IsPrivate     bool             `json:"is_private"`
+	MaxMembers    int              `json:"max_members"`
+	MembersCount  int              `json:"members_count"`
+	Rating        float32          `json:"rating"`
+	Tags          pq.StringArray   `json:"tags"`
+	OwnerID       uint             `json:"owner_id"`
+	Owner         UserResponse     `json:"owner"`
+	CurrentBook   *CurrentBook     `json:"current_book,omitempty"`
+	NextMeeting   *NextMeeting     `json:"next_meeting,omitempty"`
 	Members       []ClubMembership `json:"members,omitempty"`
-	CreatedAt     time.Time       `json:"created_at"`
-	UpdatedAt     time.Time       `json:"updated_at"`
+	CreatedAt     time.Time        `json:"created_at"`
+	UpdatedAt     time.Time        `json:"updated_at"`
 }
 
 func (c *Club) ToResponse() ClubResponse {
@@ -141,4 +159,16 @@ func (c *Club) ToResponse() ClubResponse {
 		CreatedAt:     c.CreatedAt,
 		UpdatedAt:     c.UpdatedAt,
 	}
-}	
+}
+
+func (cm *ClubMembership) ToResponse() ClubMembershipResponse {
+	return ClubMembershipResponse{
+		ID:         cm.ID,
+		UserID:     cm.UserID,
+		ClubID:     cm.ClubID,
+		Role:       cm.Role,
+		IsApproved: cm.IsApproved,
+		JoinedAt:   cm.JoinedAt,
+		User:       cm.User.ToResponse(),
+	}
+}

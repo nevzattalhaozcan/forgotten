@@ -11,3 +11,17 @@ type UserRepository interface {
 	Delete(id uint) error
 	List(limit, offset int) ([]*models.User, error)
 }
+
+type ClubRepository interface {
+	Create(club *models.Club) error
+	GetByID(id uint) (*models.Club, error)
+	Update(club *models.Club) error
+	Delete(id uint) error
+	List(limit, offset int) ([]*models.Club, error)
+	GetByName(name string) (*models.Club, error)
+	JoinClub(membership *models.ClubMembership) error
+	LeaveClub(clubID, userID uint) error
+	ListClubMembers(clubID uint) ([]*models.ClubMembership, error)
+	UpdateClubMember(membership *models.ClubMembership) error
+	GetClubMemberByUserID(clubID, userID uint) (*models.ClubMembership, error)
+}

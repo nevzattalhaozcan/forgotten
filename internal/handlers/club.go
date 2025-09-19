@@ -1,0 +1,388 @@
+package handlers
+
+import (
+	"errors"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/nevzattalhaozcan/forgotten/internal/models"
+	"github.com/nevzattalhaozcan/forgotten/internal/services"
+	"gorm.io/gorm"
+)
+
+type ClubHandler struct {
+	clubService *services.ClubService
+	validator   *validator.Validate
+}
+
+func NewClubHandler(clubService *services.ClubService) *ClubHandler {
+	return &ClubHandler{
+		clubService: clubService,
+		validator:   validator.New(),
+	}
+}
+
+// @Summary Create a new club
+// @Description Create a new book club
+// @Tags Clubs
+// @Accept json
+// @Produce json
+// @Param request body models.CreateClubRequest true "Club creation data"
+// @Success 201 {object} map[string]interface{} "Club created successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Router /api/v1/clubs [post]
+func (h *ClubHandler) CreateClub(c *gin.Context) {
+	var req models.CreateClubRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	uidRaw, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+	}
+
+	ownerID, ok := uidRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	club, err := h.clubService.CreateClub(ownerID, &req)
+	if err != nil {
+		if errors.Is(err, services.ErrClubNameExists) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "club created successfully",
+		"club":    club,
+	})
+}
+
+// @Summary Get club by ID
+// @Description Retrieve a club by its ID
+// @Tags Clubs
+// @Produce json
+// @Param id path int true "Club ID"
+// @Success 200 {object} map[string]interface{} "Club retrieved successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "Club not found"
+// @Router /api/v1/clubs/{id} [get]
+func (h *ClubHandler) GetClub(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+
+	club, err := h.clubService.GetClubByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "club not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"club": club})
+}
+
+// @Summary Get all clubs
+// @Description Retrieve a list of all clubs
+// @Tags Clubs
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Clubs retrieved successfully"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/clubs [get]
+func (h *ClubHandler) GetAllClubs(c *gin.Context) {
+	clubs, err := h.clubService.GetAllClubs()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve clubs"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"clubs": clubs})
+}
+
+// @Summary Update club
+// @Description Update club information
+// @Tags Clubs
+// @Accept json
+// @Produce json
+// @Param id path int true "Club ID"
+// @Param request body models.UpdateClubRequest true "Club update data"
+// @Success 200 {object} map[string]interface{} "Club updated successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "Club not found"
+// @Router /api/v1/clubs/{id} [put]
+func (h *ClubHandler) UpdateClub(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+
+	var req models.UpdateClubRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if _, err := h.clubService.GetClubByID(uint(id)); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "club not found"})
+		return
+	}
+
+	uidRaw, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	userID, ok := uidRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+	if !h.clubService.CanManageClub(uint(id), userID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	club, err := h.clubService.UpdateClub(uint(id), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "club updated successfully",
+		"club":    club,
+	})
+}
+
+// @Summary Delete club
+// @Description Delete a club by its ID
+// @Tags Clubs
+// @Param id path int true "Club ID"
+// @Success 204 {object} nil "Club deleted successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/clubs/{id} [delete]
+func (h *ClubHandler) DeleteClub(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+
+	if _, err := h.clubService.GetClubByID(uint(id)); err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "club not found"})
+        return
+    }
+
+	uidRaw, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	userID, ok := uidRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+	if !h.clubService.CanManageClub(uint(id), userID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	err = h.clubService.DeleteClub(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (h *ClubHandler) JoinClub(c *gin.Context) {
+	uidRaw, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	userID, ok := uidRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	clubIDParam := c.Param("id")
+	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+
+	membership, err := h.clubService.JoinClub(uint(clubID), uint(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "joined successfully",
+		"member":  membership,
+	})
+}
+
+func (h *ClubHandler) LeaveClub(c *gin.Context) {
+	clubIDParam := c.Param("id")
+	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+
+	userIDParam, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+
+	userID, ok := userIDParam.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	err = h.clubService.LeaveClub(uint(clubID), uint(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "left club successfully",
+	})
+}
+
+func (h *ClubHandler) ListClubMembers(c *gin.Context) {
+	clubIDParam := c.Param("id")
+	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+
+	members, err := h.clubService.ListClubMembers(uint(clubID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"members": members})
+}
+
+func (h *ClubHandler) UpdateClubMember(c *gin.Context) {
+	clubIDParam := c.Param("id")
+	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+
+	userIDParam := c.Param("user_id")
+	userID, err := strconv.ParseUint(userIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	var req models.UpdateClubMembershipRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if _, err := h.clubService.GetClubByID(uint(clubID)); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "club not found"})
+		return
+	}
+
+	uidRaw, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	requesterID, ok := uidRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+	if !h.clubService.CanManageClub(uint(clubID), requesterID) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	updated, err := h.clubService.UpdateClubMemberFields(uint(clubID), uint(userID), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "member updated successfully",
+		"member":  updated,
+	})
+}
+
+func (h *ClubHandler) GetClubMember(c *gin.Context) {
+	clubIDParam := c.Param("id")
+	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+
+	userIDParam := c.Param("user_id")
+	userID, err := strconv.ParseUint(userIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	member, err := h.clubService.GetClubMemberByUserID(uint(clubID), uint(userID))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "member not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"member": member})
+}

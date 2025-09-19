@@ -47,6 +47,7 @@ func (s *Server) setupRoutes() {
 	s.router.HEAD("/health", func(c *gin.Context) {	c.Status(http.StatusOK)	})
 
 	var userRepo repository.UserRepository = repository.NewUserRepository(s.db)
+	var clubRepo repository.ClubRepository = repository.NewClubRepository(s.db)
 
 	var rdbAvailable bool
 	var ttl time.Duration
@@ -71,6 +72,9 @@ func (s *Server) setupRoutes() {
 	userService := services.NewUserService(userRepo, s.config)
 	userHandler := NewUserHandler(userService)
 
+	clubService := services.NewClubService(clubRepo, s.config)
+	clubHandler := NewClubHandler(clubService)
+
 	if s.config.Server.Environment != "production" {
 		s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		s.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
@@ -80,6 +84,8 @@ func (s *Server) setupRoutes() {
 	{
 		api.POST("/auth/register", userHandler.Register)
 		api.POST("/auth/login", userHandler.Login)
+		api.GET("/clubs", clubHandler.GetAllClubs)
+		api.GET("/clubs/:id", clubHandler.GetClub)
 	}
 
 	protected := api.Group("/")
@@ -90,6 +96,17 @@ func (s *Server) setupRoutes() {
 		protected.GET("/users", middleware.RestrictToRoles("admin", "superuser"), userHandler.GetAllUsers)
 		protected.PUT("/users/:id", middleware.AuthorizeSelf(), userHandler.UpdateUser)
 		protected.DELETE("/users/:id", middleware.AuthorizeSelf(), userHandler.DeleteUser)
+
+		protected.POST("/clubs", clubHandler.CreateClub)
+		protected.PUT("/clubs/:id", clubHandler.UpdateClub)
+		protected.DELETE("/clubs/:id", clubHandler.DeleteClub)
+
+		protected.POST("/clubs/:id/join", clubHandler.JoinClub)
+		protected.POST("/clubs/:id/leave", clubHandler.LeaveClub)
+		
+		protected.GET("/clubs/:id/members", clubHandler.ListClubMembers)
+		protected.PUT("/clubs/:id/members/:user_id", clubHandler.UpdateClubMember)
+		protected.GET("/clubs/:id/members/:user_id", clubHandler.GetClubMember)
 	}
 }
 
