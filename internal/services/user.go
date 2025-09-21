@@ -204,11 +204,21 @@ func (s *UserService) UpdateUser(id uint, req *models.UpdateUserRequest) (*model
 }
 
 func (s *UserService) DeleteUser(id uint) error {
-	err := s.userRepo.Delete(id)
+	user, err := s.userRepo.GetByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("user not found")
 		}
+		return err
+	}
+
+	user.IsActive = false
+	if err := s.userRepo.Update(user); err != nil {
+		return errors.New("failed to deactivate user")
+	}
+	
+	err = s.userRepo.Delete(id)
+	if err != nil {
 		return err
 	}
 

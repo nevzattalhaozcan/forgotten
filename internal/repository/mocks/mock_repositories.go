@@ -77,6 +77,21 @@ func (mr *MockUserRepositoryMockRecorder) GetByEmail(email interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByEmail", reflect.TypeOf((*MockUserRepository)(nil).GetByEmail), email)
 }
 
+// GetByEmailIncludingDeleted mocks base method.
+func (m *MockUserRepository) GetByEmailIncludingDeleted(email string) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByEmailIncludingDeleted", email)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByEmailIncludingDeleted indicates an expected call of GetByEmailIncludingDeleted.
+func (mr *MockUserRepositoryMockRecorder) GetByEmailIncludingDeleted(email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByEmailIncludingDeleted", reflect.TypeOf((*MockUserRepository)(nil).GetByEmailIncludingDeleted), email)
+}
+
 // GetByID mocks base method.
 func (m *MockUserRepository) GetByID(id uint) (*models.User, error) {
 	m.ctrl.T.Helper()
@@ -107,6 +122,21 @@ func (mr *MockUserRepositoryMockRecorder) GetByUsername(username interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUsername", reflect.TypeOf((*MockUserRepository)(nil).GetByUsername), username)
 }
 
+// GetByUsernameIncludingDeleted mocks base method.
+func (m *MockUserRepository) GetByUsernameIncludingDeleted(username string) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUsernameIncludingDeleted", username)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUsernameIncludingDeleted indicates an expected call of GetByUsernameIncludingDeleted.
+func (mr *MockUserRepositoryMockRecorder) GetByUsernameIncludingDeleted(username interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUsernameIncludingDeleted", reflect.TypeOf((*MockUserRepository)(nil).GetByUsernameIncludingDeleted), username)
+}
+
 // List mocks base method.
 func (m *MockUserRepository) List(limit, offset int) ([]*models.User, error) {
 	m.ctrl.T.Helper()
@@ -134,4 +164,186 @@ func (m *MockUserRepository) Update(user *models.User) error {
 func (mr *MockUserRepositoryMockRecorder) Update(user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUserRepository)(nil).Update), user)
+}
+
+// MockClubRepository is a mock of ClubRepository interface.
+type MockClubRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockClubRepositoryMockRecorder
+}
+
+// MockClubRepositoryMockRecorder is the mock recorder for MockClubRepository.
+type MockClubRepositoryMockRecorder struct {
+	mock *MockClubRepository
+}
+
+// NewMockClubRepository creates a new mock instance.
+func NewMockClubRepository(ctrl *gomock.Controller) *MockClubRepository {
+	mock := &MockClubRepository{ctrl: ctrl}
+	mock.recorder = &MockClubRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockClubRepository) EXPECT() *MockClubRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockClubRepository) Create(club *models.Club) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", club)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockClubRepositoryMockRecorder) Create(club interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClubRepository)(nil).Create), club)
+}
+
+// Delete mocks base method.
+func (m *MockClubRepository) Delete(id uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockClubRepositoryMockRecorder) Delete(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockClubRepository)(nil).Delete), id)
+}
+
+// GetByID mocks base method.
+func (m *MockClubRepository) GetByID(id uint) (*models.Club, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", id)
+	ret0, _ := ret[0].(*models.Club)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockClubRepositoryMockRecorder) GetByID(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockClubRepository)(nil).GetByID), id)
+}
+
+// GetByName mocks base method.
+func (m *MockClubRepository) GetByName(name string) (*models.Club, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByName", name)
+	ret0, _ := ret[0].(*models.Club)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByName indicates an expected call of GetByName.
+func (mr *MockClubRepositoryMockRecorder) GetByName(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockClubRepository)(nil).GetByName), name)
+}
+
+// GetClubMemberByUserID mocks base method.
+func (m *MockClubRepository) GetClubMemberByUserID(clubID, userID uint) (*models.ClubMembership, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClubMemberByUserID", clubID, userID)
+	ret0, _ := ret[0].(*models.ClubMembership)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClubMemberByUserID indicates an expected call of GetClubMemberByUserID.
+func (mr *MockClubRepositoryMockRecorder) GetClubMemberByUserID(clubID, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClubMemberByUserID", reflect.TypeOf((*MockClubRepository)(nil).GetClubMemberByUserID), clubID, userID)
+}
+
+// JoinClub mocks base method.
+func (m *MockClubRepository) JoinClub(membership *models.ClubMembership) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JoinClub", membership)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// JoinClub indicates an expected call of JoinClub.
+func (mr *MockClubRepositoryMockRecorder) JoinClub(membership interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JoinClub", reflect.TypeOf((*MockClubRepository)(nil).JoinClub), membership)
+}
+
+// LeaveClub mocks base method.
+func (m *MockClubRepository) LeaveClub(clubID, userID uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LeaveClub", clubID, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// LeaveClub indicates an expected call of LeaveClub.
+func (mr *MockClubRepositoryMockRecorder) LeaveClub(clubID, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LeaveClub", reflect.TypeOf((*MockClubRepository)(nil).LeaveClub), clubID, userID)
+}
+
+// List mocks base method.
+func (m *MockClubRepository) List(limit, offset int) ([]*models.Club, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", limit, offset)
+	ret0, _ := ret[0].([]*models.Club)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockClubRepositoryMockRecorder) List(limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockClubRepository)(nil).List), limit, offset)
+}
+
+// ListClubMembers mocks base method.
+func (m *MockClubRepository) ListClubMembers(clubID uint) ([]*models.ClubMembership, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListClubMembers", clubID)
+	ret0, _ := ret[0].([]*models.ClubMembership)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListClubMembers indicates an expected call of ListClubMembers.
+func (mr *MockClubRepositoryMockRecorder) ListClubMembers(clubID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListClubMembers", reflect.TypeOf((*MockClubRepository)(nil).ListClubMembers), clubID)
+}
+
+// Update mocks base method.
+func (m *MockClubRepository) Update(club *models.Club) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", club)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockClubRepositoryMockRecorder) Update(club interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockClubRepository)(nil).Update), club)
+}
+
+// UpdateClubMember mocks base method.
+func (m *MockClubRepository) UpdateClubMember(membership *models.ClubMembership) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateClubMember", membership)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateClubMember indicates an expected call of UpdateClubMember.
+func (mr *MockClubRepositoryMockRecorder) UpdateClubMember(membership interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateClubMember", reflect.TypeOf((*MockClubRepository)(nil).UpdateClubMember), membership)
 }

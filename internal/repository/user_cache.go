@@ -182,6 +182,14 @@ func (r *cachedUserRepository) GetByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
+func (r *cachedUserRepository) GetByEmailIncludingDeleted(email string) (*models.User, error) {
+	return r.base.GetByEmailIncludingDeleted(email)
+}
+
+func (r *cachedUserRepository) GetByUsernameIncludingDeleted(username string) (*models.User, error) {
+	return r.base.GetByUsernameIncludingDeleted(username)
+}
+
 func (r *cachedUserRepository) GetByUsername(username string) (*models.User, error) {
 	ctx := context.Background()
 
