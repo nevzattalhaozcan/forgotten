@@ -222,6 +222,15 @@ func (h *ClubHandler) DeleteClub(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// @Summary Join a club
+// @Description Join a club by its ID
+// @Tags Clubs
+// @Param id path int true "Club ID"
+// @Success 200 {object} map[string]interface{} "Joined club successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/clubs/{id}/join [post]
 func (h *ClubHandler) JoinClub(c *gin.Context) {
 	uidRaw, ok := c.Get("user_id")
 	if !ok {
@@ -253,6 +262,15 @@ func (h *ClubHandler) JoinClub(c *gin.Context) {
 	})
 }
 
+// @Summary Leave a club
+// @Description Leave a club by its ID
+// @Tags Clubs
+// @Param id path int true "Club ID"
+// @Success 200 {object} map[string]interface{} "Left club successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/clubs/{id}/leave [post]
 func (h *ClubHandler) LeaveClub(c *gin.Context) {
 	clubIDParam := c.Param("id")
 	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
@@ -284,6 +302,15 @@ func (h *ClubHandler) LeaveClub(c *gin.Context) {
 	})
 }
 
+// @Summary List club members
+// @Description List all members of a club by its ID
+// @Tags Clubs
+// @Produce json
+// @Param id path int true "Club ID"
+// @Success 200 {object} map[string]interface{} "List of club members"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/clubs/{id}/members [get]
 func (h *ClubHandler) ListClubMembers(c *gin.Context) {
 	clubIDParam := c.Param("id")
 	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
@@ -301,6 +328,21 @@ func (h *ClubHandler) ListClubMembers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"members": members})
 }
 
+// @Summary Update club member
+// @Description Update a club member's information
+// @Tags Clubs
+// @Accept json
+// @Produce json
+// @Param id path int true "Club ID"
+// @Param user_id path int true "User ID"
+// @Param request body models.UpdateClubMembershipRequest true "Member update data"
+// @Success 200 {object} map[string]interface{} "Member updated successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 403 {object} map[string]string "Forbidden"
+// @Failure 404 {object} map[string]string "Club not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/clubs/{id}/members/{user_id} [put]
 func (h *ClubHandler) UpdateClubMember(c *gin.Context) {
 	clubIDParam := c.Param("id")
 	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
@@ -359,6 +401,17 @@ func (h *ClubHandler) UpdateClubMember(c *gin.Context) {
 	})
 }
 
+// @Summary Get club member by user ID
+// @Description Retrieve a club member's information by user ID
+// @Tags Clubs
+// @Produce json
+// @Param id path int true "Club ID"
+// @Param user_id path int true "User ID"
+// @Success 200 {object} map[string]interface{} "Member retrieved successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "Member not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/clubs/{id}/members/{user_id} [get]
 func (h *ClubHandler) GetClubMember(c *gin.Context) {
 	clubIDParam := c.Param("id")
 	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
