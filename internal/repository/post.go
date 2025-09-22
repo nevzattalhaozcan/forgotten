@@ -75,12 +75,19 @@ func (r *postRepository) ListAll() ([]models.Post, error) {
 	return posts, nil
 }
 
-func (r *postRepository) LikePost(like *models.PostLike) error {
+func (r *postRepository) AddLike(like *models.PostLike) error {
 	return r.db.Create(like).Error
 }
 
-func (r *postRepository) UnlikePost(userID, postID uint) error {
-	return r.db.Where("user_id = ? AND post_id = ?", userID, postID).Delete(&models.PostLike{}).Error
+func (r *postRepository) RemoveLike(userID, postID uint) error {
+	result := r.db.Where("user_id = ? AND post_id = ?", userID, postID).Delete(&models.PostLike{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 func (r *postRepository) CountLikes(postID uint) (int64, error) {
@@ -100,4 +107,15 @@ func (r *postRepository) ListLikesByPostID(postID uint) ([]models.PostLike, erro
 		return nil, err
 	}
 	return likes, nil
+}
+
+func (r *postRepository) HasUserLiked(userID, postID uint) (bool, error) {
+    var count int64
+    err := r.db.Model(&models.PostLike{}).
+        Where("user_id = ? AND post_id = ?", userID, postID).
+        Count(&count).Error
+    if err != nil {
+        return false, err
+    }
+    return count > 0, nil
 }

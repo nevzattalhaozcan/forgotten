@@ -55,6 +55,7 @@ type PostRepository interface {
 	ListByClubID(clubID uint) ([]models.Post, error)
 	ListAll() ([]models.Post, error)
 	AddLike(like *models.PostLike) error
-	RemoveLike(postID, userID uint) error
+	RemoveLike(userID, postID uint) error
 	ListLikesByPostID(postID uint) ([]models.PostLike, error)
+	HasUserLiked(userID, postID uint) (bool, error)
 }

@@ -50,6 +50,7 @@ func (s *Server) setupRoutes() {
 	var clubRepo repository.ClubRepository = repository.NewClubRepository(s.db)
 	var eventRepo repository.EventRepository = repository.NewEventRepository(s.db)
 	var bookRepo repository.BookRepository = repository.NewBookRepository(s.db)
+	var postRepo repository.PostRepository = repository.NewPostRepository(s.db)
 
 	var rdbAvailable bool
 	var ttl time.Duration
@@ -82,6 +83,9 @@ func (s *Server) setupRoutes() {
 
 	bookService := services.NewBookService(bookRepo, s.config)
 	bookHandler := NewBookHandler(bookService)
+
+	postService := services.NewPostService(postRepo, userRepo, clubRepo, s.config)
+	postHandler := NewPostHandler(postService)
 
 	if s.config.Server.Environment != "production" {
 		s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -130,6 +134,16 @@ func (s *Server) setupRoutes() {
 		protected.PUT("/books/:id", bookHandler.UpdateBook)
 		protected.DELETE("/books/:id", bookHandler.DeleteBook)
 		protected.GET("/books", bookHandler.ListBooks)
+
+		protected.POST("/posts", postHandler.CreatePost)
+		protected.GET("/posts/:id", postHandler.GetPostByID)
+		protected.PUT("/posts/:id", postHandler.UpdatePost)
+		protected.DELETE("/posts/:id", postHandler.DeletePost)
+		protected.GET("/posts", postHandler.ListAllPosts)
+
+		protected.POST("/posts/:id/like", postHandler.LikePost)
+		protected.POST("/posts/:id/unlike", postHandler.UnlikePost)
+		protected.GET("/posts/:id/likes", postHandler.ListLikesByPostID)
 	}
 }
 
