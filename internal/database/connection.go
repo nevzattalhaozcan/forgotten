@@ -66,6 +66,8 @@ func autoMigrate(db *gorm.DB) error {
 		models.Book{},
 		models.Club{},
 		models.ClubMembership{},
+		models.Event{},
+        models.EventRSVP{},
 		models.Annotation{},
 		models.AnnotationLike{},
 		models.Comment{},

@@ -17,6 +17,9 @@ func SetupTestDB() (*gorm.DB, error) {
 
 	err = db.AutoMigrate(
 		&models.User{},
+		&models.Club{},
+        &models.Event{},
+        &models.EventRSVP{},
 	)
 	if err != nil {
 		return nil, err

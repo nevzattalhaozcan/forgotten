@@ -48,6 +48,7 @@ func (s *Server) setupRoutes() {
 
 	var userRepo repository.UserRepository = repository.NewUserRepository(s.db)
 	var clubRepo repository.ClubRepository = repository.NewClubRepository(s.db)
+	var eventRepo repository.EventRepository = repository.NewEventRepository(s.db)
 
 	var rdbAvailable bool
 	var ttl time.Duration
@@ -74,6 +75,9 @@ func (s *Server) setupRoutes() {
 
 	clubService := services.NewClubService(clubRepo, s.config)
 	clubHandler := NewClubHandler(clubService)
+
+	eventService := services.NewEventService(eventRepo, clubRepo, s.config)
+	eventHandler := NewEventHandler(eventService)
 
 	if s.config.Server.Environment != "production" {
 		s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -107,6 +111,15 @@ func (s *Server) setupRoutes() {
 		protected.GET("/clubs/:id/members", clubHandler.ListClubMembers)
 		protected.PUT("/clubs/:id/members/:user_id", clubHandler.UpdateClubMember)
 		protected.GET("/clubs/:id/members/:user_id", clubHandler.GetClubMember)
+
+		protected.POST("/clubs/:id/events", eventHandler.CreateEvent)
+		protected.GET("/clubs/:id/events", eventHandler.GetClubEvents)
+		protected.GET("/events/:id", eventHandler.GetEvent)
+		protected.PUT("/events/:id", eventHandler.UpdateEvent)
+		protected.DELETE("/events/:id", eventHandler.DeleteEvent)
+
+		protected.POST("/events/:id/rsvp", eventHandler.RSVPToEvent)
+		protected.GET("/events/:id/attendees", eventHandler.GetEventAttendees)
 	}
 }
 

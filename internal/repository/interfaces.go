@@ -27,3 +27,13 @@ type ClubRepository interface {
 	UpdateClubMember(membership *models.ClubMembership) error
 	GetClubMemberByUserID(clubID, userID uint) (*models.ClubMembership, error)
 }
+
+type EventRepository interface {
+	Create(event *models.Event) error
+    GetClubEvents(clubID uint) ([]models.Event, error)
+    GetByID(id uint) (*models.Event, error)
+    Update(event *models.Event) error
+    Delete(id uint) error
+    RSVP(eventID uint, rsvp *models.EventRSVP) error
+    GetEventAttendees(eventID uint) ([]models.EventRSVP, error)
+}
