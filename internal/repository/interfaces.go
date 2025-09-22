@@ -37,3 +37,11 @@ type EventRepository interface {
     RSVP(eventID uint, rsvp *models.EventRSVP) error
     GetEventAttendees(eventID uint) ([]models.EventRSVP, error)
 }
+
+type BookRepository interface {
+	Create(book *models.Book) error
+	GetByID(id uint) (*models.Book, error)
+	Update(book *models.Book) error
+	Delete(id uint) error
+	List(limit, offset int) ([]*models.Book, error)
+}

@@ -49,6 +49,7 @@ func (s *Server) setupRoutes() {
 	var userRepo repository.UserRepository = repository.NewUserRepository(s.db)
 	var clubRepo repository.ClubRepository = repository.NewClubRepository(s.db)
 	var eventRepo repository.EventRepository = repository.NewEventRepository(s.db)
+	var bookRepo repository.BookRepository = repository.NewBookRepository(s.db)
 
 	var rdbAvailable bool
 	var ttl time.Duration
@@ -78,6 +79,9 @@ func (s *Server) setupRoutes() {
 
 	eventService := services.NewEventService(eventRepo, clubRepo, s.config)
 	eventHandler := NewEventHandler(eventService)
+
+	bookService := services.NewBookService(bookRepo, s.config)
+	bookHandler := NewBookHandler(bookService)
 
 	if s.config.Server.Environment != "production" {
 		s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -120,6 +124,12 @@ func (s *Server) setupRoutes() {
 
 		protected.POST("/events/:id/rsvp", eventHandler.RSVPToEvent)
 		protected.GET("/events/:id/attendees", eventHandler.GetEventAttendees)
+
+		protected.POST("/books", bookHandler.CreateBook)
+		protected.GET("/books/:id", bookHandler.GetBookByID)
+		protected.PUT("/books/:id", bookHandler.UpdateBook)
+		protected.DELETE("/books/:id", bookHandler.DeleteBook)
+		protected.GET("/books", bookHandler.ListBooks)
 	}
 }
 

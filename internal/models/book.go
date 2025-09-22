@@ -18,8 +18,8 @@ type Book struct {
 	Description   *string  `json:"description,omitempty" gorm:"type:text"`
 	Rating        *float32 `json:"rating,omitempty" gorm:"type:decimal(2,1)" validate:"omitempty,gte=0,lte=5"`
 
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
