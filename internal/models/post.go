@@ -41,7 +41,6 @@ type CreatePostRequest struct {
 	Title   string `json:"title" validate:"required,min=1,max=255"`
 	Content string `json:"content" validate:"required,min=1"`
 	Type    string `json:"type" validate:"required,oneof=discussion announcement event poll review"`
-	ClubID  uint   `json:"club_id" validate:"required"`
 }
 
 type UpdatePostRequest struct {
@@ -49,14 +48,6 @@ type UpdatePostRequest struct {
 	Content  *string `json:"content,omitempty" validate:"omitempty,min=1"`
 	Type     *string `json:"type,omitempty" validate:"omitempty,oneof=discussion announcement event poll review"`
 	IsPinned *bool   `json:"is_pinned,omitempty"`
-}
-
-type LikePostRequest struct {
-	PostID uint `json:"post_id" validate:"required"`
-}
-
-type UnlikePostRequest struct {
-	PostID uint `json:"post_id" validate:"required"`
 }
 
 type PostResponse struct {

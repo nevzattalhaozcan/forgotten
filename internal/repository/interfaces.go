@@ -45,3 +45,16 @@ type BookRepository interface {
 	Delete(id uint) error
 	List(limit, offset int) ([]*models.Book, error)
 }
+
+type PostRepository interface {
+	Create(post *models.Post) error
+	GetByID(id uint) (*models.Post, error)
+	Update(post *models.Post) error
+	Delete(id uint) error
+	ListByUserID(userID uint) ([]models.Post, error)
+	ListByClubID(clubID uint) ([]models.Post, error)
+	ListAll() ([]models.Post, error)
+	AddLike(like *models.PostLike) error
+	RemoveLike(postID, userID uint) error
+	ListLikesByPostID(postID uint) ([]models.PostLike, error)
+}
