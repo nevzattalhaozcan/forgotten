@@ -22,6 +22,19 @@ func NewCommentHandler(commentService *services.CommentService) *CommentHandler 
 	}
 }
 
+
+// @Summary Create a new comment
+// @Description Create a new comment for a specific post
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Param comment body models.CreateCommentRequest true "Comment data"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /posts/{id}/comments [post]
 func (c *CommentHandler) CreateComment(ctx *gin.Context) {
 	uidRaw, exists := ctx.Get("user_id")
 	if !exists {
@@ -65,6 +78,17 @@ func (c *CommentHandler) CreateComment(ctx *gin.Context) {
 	})
 }
 
+// @Summary Get a comment by ID
+// @Description Retrieve a comment by its ID
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path int true "Comment ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /comments/{id} [get]
 func (c *CommentHandler) GetCommentByID(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
@@ -88,6 +112,18 @@ func (c *CommentHandler) GetCommentByID(ctx *gin.Context) {
 	})
 }
 
+// @Summary Update a comment
+// @Description Update an existing comment by its ID
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path int true "Comment ID"
+// @Param comment body models.UpdateCommentRequest true "Updated comment data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /comments/{id} [put]
 func (c *CommentHandler) UpdateComment(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
@@ -123,6 +159,17 @@ func (c *CommentHandler) UpdateComment(ctx *gin.Context) {
 	})
 }
 
+// @Summary Delete a comment
+// @Description Delete a comment by its ID
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path int true "Comment ID"
+// @Success 204 {object} nil
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /comments/{id} [delete]
 func (c *CommentHandler) DeleteComment(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
@@ -144,6 +191,17 @@ func (c *CommentHandler) DeleteComment(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+// @Summary List comments by post ID
+// @Description Retrieve all comments for a specific post
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /posts/{id}/comments [get]
 func (c *CommentHandler) ListCommentsByPostID(ctx *gin.Context) {
 	postidParam := ctx.Param("id")
 	postID, err := strconv.ParseUint(postidParam, 10, 32)
@@ -167,6 +225,17 @@ func (c *CommentHandler) ListCommentsByPostID(ctx *gin.Context) {
 	})
 }
 
+// @Summary List comments by user ID
+// @Description Retrieve all comments made by a specific user
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{id}/comments [get]
 func (c *CommentHandler) ListCommentsByUserID(ctx *gin.Context) {
 	uidParam := ctx.Param("id")
 	userID, err := strconv.ParseUint(uidParam, 10, 32)
@@ -190,6 +259,18 @@ func (c *CommentHandler) ListCommentsByUserID(ctx *gin.Context) {
 	})
 }
 
+// @Summary Like a comment
+// @Description Like a comment by its ID
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path int true "Comment ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /comments/{id}/like [post]
 func (c *CommentHandler) LikeComment(ctx *gin.Context) {
 	uidRaw, exists := ctx.Get("user_id")
 	if !exists {
@@ -231,6 +312,18 @@ func (c *CommentHandler) LikeComment(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "comment liked successfully"})
 }
 
+// @Summary Unlike a comment
+// @Description Unlike a comment by its ID
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path int true "Comment ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /comments/{id}/unlike [post]
 func (c *CommentHandler) UnlikeComment(ctx *gin.Context) {
 	uidRaw, exists := ctx.Get("user_id")
 	if !exists {
@@ -272,6 +365,17 @@ func (c *CommentHandler) UnlikeComment(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "comment unliked successfully"})
 }
 
+// @Summary List likes by comment ID
+// @Description Retrieve all likes for a specific comment
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Param id path int true "Comment ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /comments/{id}/likes [get]
 func (c *CommentHandler) ListLikesByCommentID(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 	commentID, err := strconv.ParseUint(idParam, 10, 32)

@@ -23,6 +23,17 @@ func NewPostHandler(postService *services.PostService) *PostHandler {
 	}
 }
 
+// @Summary Create a new post
+// @Description Create a new post associated with the authenticated user
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param post body models.CreatePostRequest true "Post data"
+// @Success 201 {object} models.Post "Post created successfully"
+// @Failure 400 {object} gin.H "Bad request"
+// @Failure 401 {object} gin.H "Unauthorized"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts [post]
 func (h *PostHandler) CreatePost(c *gin.Context) {
 	useridRaw, exists := c.Get("user_id")
 	if !exists {
@@ -59,6 +70,17 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	})
 }
 
+// @Summary Get a post by ID
+// @Description Retrieve a post by its ID
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {object} models.Post "Post retrieved successfully"
+// @Failure 400 {object} gin.H "Bad request"
+// @Failure 404 {object} gin.H "Post not found"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts/{id} [get]
 func (h *PostHandler) GetPostByID(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
@@ -80,6 +102,18 @@ func (h *PostHandler) GetPostByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"post": post})
 }
 
+// @Summary Update a post
+// @Description Update a post by its ID
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Param post body models.UpdatePostRequest true "Updated post data"
+// @Success 200 {object} models.Post "Post updated successfully"
+// @Failure 400 {object} gin.H "Bad request"
+// @Failure 404 {object} gin.H "Post not found"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts/{id} [put]
 func (h *PostHandler) UpdatePost(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
@@ -115,6 +149,17 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 	})
 }
 
+// @Summary Delete a post
+// @Description Delete a post by its ID
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 204 {object} nil "Post deleted successfully"
+// @Failure 400 {object} gin.H "Bad request"
+// @Failure 404 {object} gin.H "Post not found"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts/{id} [delete]
 func (h *PostHandler) DeletePost(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
@@ -135,6 +180,16 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// @Summary List posts by user ID
+// @Description Retrieve all posts created by a specific user
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {array} models.Post "Posts retrieved successfully"
+// @Failure 400 {object} gin.H "Bad request"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /users/{id}/posts [get]
 func (h *PostHandler) ListPostsByUserID(c *gin.Context) {
 	userIDParam := c.Param("id")
 	userID, err := strconv.ParseUint(userIDParam, 10, 32)
@@ -152,6 +207,16 @@ func (h *PostHandler) ListPostsByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
+// @Summary List posts by club ID
+// @Description Retrieve all posts associated with a specific club
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Club ID"
+// @Success 200 {array} models.Post "Posts retrieved successfully"
+// @Failure 400 {object} gin.H "Bad request"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /clubs/{id}/posts [get]
 func (h *PostHandler) ListPostsByClubID(c *gin.Context) {
 	clubIDParam := c.Param("id")
 	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
@@ -169,6 +234,14 @@ func (h *PostHandler) ListPostsByClubID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
+// @Summary List all posts
+// @Description Retrieve all posts in the system
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Post "Posts retrieved successfully"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts [get]
 func (h *PostHandler) ListAllPosts(c *gin.Context) {
 	posts, err := h.postService.ListAllPosts()
 	if err != nil {
@@ -179,6 +252,18 @@ func (h *PostHandler) ListAllPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
+// @Summary Like a post
+// @Description Like a post by its ID
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {object} gin.H "Post liked successfully"
+// @Failure 400 {object} gin.H "Bad request"
+// @Failure 401 {object} gin.H "Unauthorized"
+// @Failure 404 {object} gin.H "Post not found"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts/{id}/like [post]
 func (h *PostHandler) LikePost(c *gin.Context) {
 	postIdParam := c.Param("id")
 	postID, err := strconv.ParseUint(postIdParam, 10, 32)
@@ -214,6 +299,18 @@ func (h *PostHandler) LikePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "post liked successfully"})
 }
 
+// @Summary Unlike a post
+// @Description Unlike a post by its ID
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {object} gin.H "Post unliked successfully"
+// @Failure 400 {object} gin.H "Bad request"
+// @Failure 401 {object} gin.H "Unauthorized"
+// @Failure 404 {object} gin.H "Post not found"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts/{id}/unlike [post]
 func (h *PostHandler) UnlikePost(c *gin.Context) {
 	postIdParam := c.Param("id")
 	postID, err := strconv.ParseUint(postIdParam, 10, 32)
@@ -249,6 +346,17 @@ func (h *PostHandler) UnlikePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "post unliked successfully"})
 }
 
+// @Summary List likes by post ID
+// @Description Retrieve all likes associated with a specific post
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {array} models.Like "Likes retrieved successfully"
+// @Failure 400 {object} gin.H "Bad request"
+// @Failure 404 {object} gin.H "Post not found or no likes found"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts/{id}/likes [get]
 func (h *PostHandler) ListLikesByPostID(c *gin.Context) {
 	postIdParam := c.Param("id")
 	postID, err := strconv.ParseUint(postIdParam, 10, 32)
