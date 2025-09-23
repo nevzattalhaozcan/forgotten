@@ -119,3 +119,9 @@ func (r *postRepository) HasUserLiked(userID, postID uint) (bool, error) {
     }
     return count > 0, nil
 }
+
+func (r *postRepository) UpdateLikesCount(postID uint, count int) error {
+	return r.db.Model(&models.Post{}).
+		Where("id = ?", postID).
+		Update("likes_count", count).Error
+}

@@ -58,6 +58,8 @@ type PostRepository interface {
 	RemoveLike(userID, postID uint) error
 	ListLikesByPostID(postID uint) ([]models.PostLike, error)
 	HasUserLiked(userID, postID uint) (bool, error)
+	CountLikes(postID uint) (int64, error)
+	UpdateLikesCount(postID uint, count int) error
 }
 
 type CommentRepository interface {

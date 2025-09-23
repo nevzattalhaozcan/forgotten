@@ -231,7 +231,6 @@ func (c *CommentHandler) LikeComment(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "comment liked successfully"})
 }
 
-//TODO: fix unlike comment
 func (c *CommentHandler) UnlikeComment(ctx *gin.Context) {
 	uidRaw, exists := ctx.Get("user_id")
 	if !exists {

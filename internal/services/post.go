@@ -2,9 +2,7 @@ package services
 
 import (
 	"errors"
-	"strings"
 
-	"github.com/lib/pq"
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
 	"github.com/nevzattalhaozcan/forgotten/internal/repository"
@@ -193,11 +191,6 @@ func (s *PostService) LikePost(userID, postID uint) error {
 		return err
 	}
 
-	like := &models.PostLike{
-		UserID: userID,
-		PostID: postID,
-	}
-
 	hasLiked, err := s.postRepo.HasUserLiked(userID, postID)
 	if err != nil {
 		return err
@@ -206,26 +199,27 @@ func (s *PostService) LikePost(userID, postID uint) error {
 		return errors.New("user has already liked this post")
 	}
 
-	err = s.postRepo.AddLike(like)
+	err = s.postRepo.AddLike(&models.PostLike{
+		UserID: userID,
+		PostID: postID,
+	})
 	if err != nil {
-		if isUniqueConstraintError(err, "idx_user_post_like") {
-			return errors.New("user has already liked this post")
-		}
 		return err
 	}
 
-	// Only increment the count if the like was successfully added
-	post.LikesCount++
+	count, err := s.postRepo.CountLikes(postID)
+	if err != nil {
+		return err
+	}
+
+	post.LikesCount = int(count)
 	if err := s.postRepo.Update(post); err != nil {
-		// If updating the count fails, we should remove the like to maintain consistency
-		s.postRepo.RemoveLike(userID, postID)
 		return err
 	}
 
-	return nil
+	return s.postRepo.UpdateLikesCount(postID, int(count))
 }
 
-//TODO: fix success issue for the first unlike action
 func (s *PostService) UnlikePost(userID, postID uint) error {
 	_, err := s.userRepo.GetByID(userID)
 	if err != nil {
@@ -235,7 +229,7 @@ func (s *PostService) UnlikePost(userID, postID uint) error {
 		return err
 	}
 
-	post, err := s.postRepo.GetByID(postID)
+	_, err = s.postRepo.GetByID(postID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("post not found")
@@ -251,23 +245,16 @@ func (s *PostService) UnlikePost(userID, postID uint) error {
 		return errors.New("user has not liked this post")
 	}
 
-	err = s.postRepo.RemoveLike(userID, postID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("user has not liked this post")
-		}
+	if err := s.postRepo.RemoveLike(userID, postID); err != nil {
 		return err
 	}
 
-	// Only decrement if the like was successfully removed and count is positive
-	if post.LikesCount > 0 {
-		post.LikesCount--
-		if err := s.postRepo.Update(post); err != nil {
-			return err
-		}
+	count, err := s.postRepo.CountLikes(postID)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	return s.postRepo.UpdateLikesCount(postID, int(count))
 }
 
 func (s *PostService) ListLikesByPostID(postID uint) ([]models.PostLike, error) {
@@ -288,17 +275,4 @@ func (s *PostService) ListLikesByPostID(postID uint) ([]models.PostLike, error) 
 	}
 
 	return likes, nil
-}
-
-func isUniqueConstraintError(err error, constraintName string) bool {
-	if pqErr, ok := err.(*pq.Error); ok {
-		// PostgreSQL unique constraint violation code is 23505
-		if pqErr.Code == "23505" {
-			// Check if the constraint name matches
-			return strings.Contains(string(pqErr.Constraint), constraintName) ||
-				strings.Contains(pqErr.Message, constraintName) ||
-				strings.Contains(pqErr.Detail, constraintName)
-		}
-	}
-	return false
 }
