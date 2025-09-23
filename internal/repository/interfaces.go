@@ -59,3 +59,18 @@ type PostRepository interface {
 	ListLikesByPostID(postID uint) ([]models.PostLike, error)
 	HasUserLiked(userID, postID uint) (bool, error)
 }
+
+type CommentRepository interface {
+	Create(comment *models.Comment) error
+	GetByID(id uint) (*models.Comment, error)
+	Update(comment *models.Comment) error
+	Delete(id uint) error
+	ListByPostID(postID uint) ([]models.Comment, error)
+	ListByUserID(userID uint) ([]models.Comment, error)
+	LikeComment(like *models.CommentLike) error
+	UnlikeComment(userID, commentID uint) error
+	ListCommentLikes(commentID uint) ([]models.CommentLike, error)
+	HasUserLiked(userID, commentID uint) (bool, error)
+	CountLikes(commentID uint) (int64, error)
+	UpdateLikesCount(commentID uint, count int) error
+}

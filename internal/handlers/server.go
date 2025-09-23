@@ -51,6 +51,7 @@ func (s *Server) setupRoutes() {
 	var eventRepo repository.EventRepository = repository.NewEventRepository(s.db)
 	var bookRepo repository.BookRepository = repository.NewBookRepository(s.db)
 	var postRepo repository.PostRepository = repository.NewPostRepository(s.db)
+	var commentRepo repository.CommentRepository = repository.NewCommentRepository(s.db)
 
 	var rdbAvailable bool
 	var ttl time.Duration
@@ -86,6 +87,9 @@ func (s *Server) setupRoutes() {
 
 	postService := services.NewPostService(postRepo, userRepo, clubRepo, s.config)
 	postHandler := NewPostHandler(postService)
+
+	commentService := services.NewCommentService(commentRepo, postRepo, userRepo, s.config)
+	commentHandler := NewCommentHandler(commentService)
 
 	if s.config.Server.Environment != "production" {
 		s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -144,6 +148,17 @@ func (s *Server) setupRoutes() {
 		protected.POST("/posts/:id/like", postHandler.LikePost)
 		protected.POST("/posts/:id/unlike", postHandler.UnlikePost)
 		protected.GET("/posts/:id/likes", postHandler.ListLikesByPostID)
+
+		protected.POST("/posts/:id/comments", commentHandler.CreateComment)
+		protected.GET("/comments/:id", commentHandler.GetCommentByID)
+		protected.PUT("/comments/:id", commentHandler.UpdateComment)
+		protected.DELETE("/comments/:id", commentHandler.DeleteComment)
+		protected.GET("/posts/:id/comments", commentHandler.ListCommentsByPostID)
+		protected.GET("/users/:id/comments", commentHandler.ListCommentsByUserID)
+
+		protected.POST("/comments/:id/like", commentHandler.LikeComment)
+		protected.POST("/comments/:id/unlike", commentHandler.UnlikeComment)
+		protected.GET("/comments/:id/likes", commentHandler.ListLikesByCommentID)
 	}
 }
 

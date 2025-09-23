@@ -32,20 +32,11 @@ type Comment struct {
 }
 
 type CreateCommentRequest struct {
-	PostID  uint   `json:"post_id" validate:"required"`
 	Content string `json:"content" validate:"required,min=1"`
 }
 
 type UpdateCommentRequest struct {
 	Content *string `json:"content,omitempty" validate:"omitempty,min=1"`
-}
-
-type LikeCommentRequest struct {
-	CommentID uint `json:"comment_id" validate:"required"`
-}
-
-type UnlikeCommentRequest struct {
-	CommentID uint `json:"comment_id" validate:"required"`
 }
 
 type CommentResponse struct {
