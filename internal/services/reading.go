@@ -1,9 +1,10 @@
 package services
 
 import (
-	"slices"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
@@ -250,6 +251,23 @@ func (s *ReadingService) AssignBookToClub(clubID, bookID uint, req *models.Assig
 		ID: a.ID, ClubID: clubID, Book: *book, Status: string(a.Status),
 		StartDate: a.StartDate, DueDate: a.DueDate, TargetPage: a.TargetPage, Checkpoint: a.Checkpoint,
 	}
+
+	book, berr := s.bookRepo.GetByID(bookID)
+    if berr == nil && book != nil {
+        cb := models.CurrentBook{
+            Title:    book.Title,
+            Author:   book.Author,
+            CoverURL: book.CoverURL,
+            BookID:   &book.ID,
+        }
+        if b, err := json.Marshal(&cb); err == nil {
+            if club, cerr := s.clubRepo.GetByID(clubID); cerr == nil {
+                club.CurrentBook = b
+                _ = s.clubRepo.Update(club) // non-fatal; don't fail the assignment if club update fails
+            }
+        }
+    }
+
 	return resp, nil
 }
 
@@ -272,6 +290,21 @@ func (s *ReadingService) UpdateClubCheckpoint(clubID uint, req *models.UpdateClu
 		ID: a.ID, ClubID: a.ClubID, Book: *book, Status: string(a.Status),
 		StartDate: a.StartDate, DueDate: a.DueDate, TargetPage: a.TargetPage, Checkpoint: a.Checkpoint,
 	}
+
+	if req.TargetPage != nil {
+        if club, cerr := s.clubRepo.GetByID(clubID); cerr == nil && len(club.CurrentBook) > 0 {
+            var cb models.CurrentBook
+            if uerr := json.Unmarshal(club.CurrentBook, &cb); uerr == nil {
+                p := *req.TargetPage
+                cb.Progress = &p
+                if b, merr := json.Marshal(&cb); merr == nil {
+                    club.CurrentBook = b
+                    _ = s.clubRepo.Update(club)
+                }
+            }
+        }
+    }
+
 	return resp, nil
 }
 
@@ -291,6 +324,12 @@ func (s *ReadingService) CompleteClubAssignment(clubID uint) (*models.ClubAssign
 		ID: a.ID, ClubID: a.ClubID, Book: *book, Status: string(a.Status),
 		StartDate: a.StartDate, DueDate: a.DueDate, TargetPage: a.TargetPage, Checkpoint: a.Checkpoint,
 	}
+
+	if club, cerr := s.clubRepo.GetByID(clubID); cerr == nil {
+        club.CurrentBook = nil
+        _ = s.clubRepo.Update(club)
+    }
+
 	return resp, nil
 }
 
