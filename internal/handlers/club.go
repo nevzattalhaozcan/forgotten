@@ -460,6 +460,18 @@ func (h *ClubHandler) GetClubMember(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"member": member})
 }
 
+// @Summary Rate a club
+// @Description Rate a club by its ID
+// @Tags Clubs
+// @Accept json
+// @Produce json
+// @Param id path int true "Club ID"
+// @Param request body models.RateClubRequest true "Club rating data"
+// @Success 200 {object} map[string]interface{} "Club rated successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/clubs/{id}/rate [post]
 func (h *ClubHandler) RateClub(c *gin.Context) {
 	clubIDParam := c.Param("id")
 	clubID64, err := strconv.ParseUint(clubIDParam, 10, 32)
@@ -503,6 +515,17 @@ func (h *ClubHandler) RateClub(c *gin.Context) {
 	})
 }
 
+// @Summary List club ratings
+// @Description List all ratings for a club by its ID
+// @Tags Clubs
+// @Produce json
+// @Param id path int true "Club ID"
+// @Param limit query int false "Limit" default(20)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} map[string]interface{} "List of club ratings"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/clubs/{id}/ratings [get]
 func (h *ClubHandler) ListClubRatings(c *gin.Context) {
 	clubIDParam := c.Param("id")
 	clubID64, err := strconv.ParseUint(clubIDParam, 10, 32)
