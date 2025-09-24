@@ -1,7 +1,9 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
@@ -49,6 +51,7 @@ func (s *EventService) CreateEvent(clubID uint, req *models.CreateEventRequest) 
 	}
 
 	response := event.ToResponse()
+	_ = s.refreshClubNextMeeting(clubID)
 	return &response, nil
 }
 
@@ -126,18 +129,25 @@ func (s *EventService) UpdateEvent(id uint, req *models.UpdateEventRequest) (*mo
 	}
 
 	response := event.ToResponse()
+	_ = s.refreshClubNextMeeting(event.ClubID)
 	return &response, nil
 }
 
 func (s *EventService) DeleteEvent(id uint) error {
-	_, err := s.eventRepo.GetByID(id)
+	event, err := s.eventRepo.GetByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("event not found")
 		}
 		return err
 	}
-	return s.eventRepo.Delete(id)
+	if err := s.eventRepo.Delete(id); err != nil {
+		return err
+	}
+
+	_ = s.refreshClubNextMeeting(event.ClubID)
+
+	return nil
 }
 
 func (s *EventService) RSVPToEvent(id uint, rsvp *models.EventRSVP) error {
@@ -160,4 +170,59 @@ func (s *EventService) GetEventAttendees(eventID uint) ([]models.EventRSVP, erro
 		return nil, err
 	}
 	return s.eventRepo.GetEventAttendees(eventID)
+}
+
+func (s *EventService) refreshClubNextMeeting(clubID uint) error {
+	events, err := s.eventRepo.GetClubEvents(clubID)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	var next *models.Event
+	for i := range events {
+		e := events[i]
+		if e.StartTime.Before(now) {
+			continue
+		}
+		if next == nil || e.StartTime.Before(next.StartTime) {
+			next = &e
+		}
+	}
+
+	club, err := s.clubRepo.GetByID(clubID)
+	if err != nil {
+		return err
+	}
+
+	if next == nil {
+		club.NextMeeting = nil
+		return s.clubRepo.Update(club)
+	}
+
+	var loc *string
+	switch next.EventType {
+	case models.EventOnline:
+		if next.OnlineLink != "" {
+			l := next.OnlineLink
+			loc = &l
+		}
+	default:
+		if next.Location != "" {
+			l := next.Location
+			loc = &l
+		}	
+	}
+
+	topic := next.Title
+	nm := models.NextMeeting{
+		Date: &next.StartTime,
+		Location: loc,
+		Topic: &topic,
+	}
+	if b, merr := json.Marshal(&nm); merr == nil {
+		club.NextMeeting = b
+	}
+
+	return s.clubRepo.Update(club)
 }
