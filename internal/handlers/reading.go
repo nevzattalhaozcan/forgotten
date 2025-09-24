@@ -121,3 +121,11 @@ func (h *ReadingHandler) ListClubAssignments(c *gin.Context) {
     if err != nil { c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return }
     c.JSON(http.StatusOK, resp)
 }
+
+func (h *ReadingHandler) SyncUserStats(c *gin.Context) {
+    userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+    if err := h.readingService.SyncUserStats(uint(userID)); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "user stats synchronized successfully"})
+}

@@ -1,7 +1,9 @@
 package services
 
 import (
+	"slices"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
@@ -112,6 +114,9 @@ func (s *ReadingService) CompleteReading(userID, bookID uint, note *string) (*mo
 	} else if err != nil {
 		return nil, err
 	}
+
+	wasAlreadyFinished := p.Status == models.ReadingFinished
+
 	now := time.Now()
 	p.Status = models.ReadingFinished
 	p.FinishedAt = &now
@@ -131,8 +136,43 @@ func (s *ReadingService) CompleteReading(userID, bookID uint, note *string) (*mo
 		UserID: userID, BookID: bookID, Note: note,
 	})
 
+	if !wasAlreadyFinished {
+		if err := s.incrementBooksReadAndAwardBadges(userID); err != nil {
+			return nil, err
+		}
+	}
+
 	resp := p.ToResponse(book)
 	return &resp, nil
+}
+
+func (s *ReadingService) incrementBooksReadAndAwardBadges(userID uint) error {
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return err
+	}
+
+	user.BooksRead++
+	awardBadgesForBooksRead(user)
+
+	return s.userRepo.Update(user)
+}
+
+func awardBadgesForBooksRead(user *models.User) {
+	thresholds := []int{1, 5, 10, 20, 50, 100}
+	for _, t := range thresholds {
+		badge := fmt.Sprintf("books:%d", t)
+		if user.BooksRead >= t && !hasBadge(user.Badges, badge) {
+			user.Badges = append(user.Badges, badge)
+		}
+	}
+	if user.ReadingGoal > 0 && user.BooksRead >= user.ReadingGoal && !hasBadge(user.Badges, "goal:met") {
+		user.Badges = append(user.Badges, "goal:met")
+	}
+}
+
+func hasBadge(badges []string, badge string) bool {
+	return slices.Contains(badges, badge)
 }
 
 func (s *ReadingService) ListUserProgress(userID uint) ([]*models.UserBookProgressResponse, error) {
@@ -271,4 +311,22 @@ func (s *ReadingService) ListClubAssignments(clubID uint) ([]models.ClubAssignme
 		})
 	}
 	return out, nil
+}
+
+func (s *ReadingService) SyncUserStats(userID uint) error {
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return err
+	}
+
+	finished, err := s.readRepo.ListUserFinished(userID)
+	if err != nil {
+		return err
+	}
+
+	user.BooksRead = len(finished)
+	user.Badges = nil
+	awardBadgesForBooksRead(user)
+
+	return s.userRepo.Update(user)
 }

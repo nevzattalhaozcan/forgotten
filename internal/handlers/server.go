@@ -165,6 +165,7 @@ func (s *Server) setupRoutes() {
 		protected.POST("/comments/:id/unlike", commentHandler.UnlikeComment)
 		protected.GET("/comments/:id/likes", commentHandler.ListLikesByCommentID)
 
+		protected.POST("/users/:id/reading/sync", readingHandler.SyncUserStats)
 		protected.POST("/users/:id/reading/start", readingHandler.StartReading)
         protected.PATCH("/users/:id/reading/:bookID/progress", readingHandler.UpdateProgress)
         protected.POST("/users/:id/reading/:bookID/complete", readingHandler.CompleteReading)
