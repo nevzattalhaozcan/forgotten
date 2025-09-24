@@ -44,6 +44,7 @@ type Club struct {
 	MaxMembers    int              `json:"max_members" gorm:"default:100"`
 	MembersCount  int              `json:"members_count" gorm:"default:0"`
 	Rating        float32          `json:"rating" gorm:"default:0"`
+	RatingsCount  int              `json:"ratings_count" gorm:"default:0"`
 	Tags          pq.StringArray   `json:"tags" gorm:"type:text[]"`
 	OwnerID       *uint            `json:"owner_id"`
 	CurrentBook   json.RawMessage  `json:"current_book" gorm:"type:jsonb"`
@@ -56,6 +57,21 @@ type Club struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+}
+
+type ClubRating struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	ClubID    uint      `json:"club_id" gorm:"index;not null"`
+	UserID    uint      `json:"user_id" gorm:"index;not null"`
+	Rating    float32   `json:"rating" gorm:"not null"`
+	Comment   *string   `json:"comment" gorm:"type:text"`
+	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+}
+
+type RateClubRequest struct {
+	Rating  float32 `json:"rating" validate:"required,gte=1,lte=5"`
+	Comment *string `json:"comment" validate:"omitempty,max=1000"`
 }
 
 type CreateClubRequest struct {
@@ -88,6 +104,10 @@ type UpdateClubMembershipRequest struct {
 	IsApproved *bool   `json:"is_approved" validate:"omitempty"`
 }
 
+type UpdateClubRatingRequest struct {
+	Rating float32 `json:"rating" validate:"required,gte=0,lte=5"`
+}
+
 type ClubMembershipResponse struct {
 	ID         uint         `json:"id"`
 	UserID     uint         `json:"user_id"`
@@ -109,6 +129,7 @@ type ClubResponse struct {
 	MaxMembers    int              `json:"max_members"`
 	MembersCount  int              `json:"members_count"`
 	Rating        float32          `json:"rating"`
+	RatingsCount  int              `json:"ratings_count"`
 	Tags          pq.StringArray   `json:"tags"`
 	OwnerID       uint             `json:"owner_id"`
 	Owner         UserResponse     `json:"owner"`
@@ -151,13 +172,18 @@ func (c *Club) ToResponse() ClubResponse {
 		MembersCount:  c.MembersCount,
 		Rating:        c.Rating,
 		Tags:          c.Tags,
-		OwnerID:       func() uint { if c.OwnerID != nil { return *c.OwnerID }; return 0 }(),
-		Owner:         c.Owner.ToResponse(),
-		CurrentBook:   currentBook,
-		NextMeeting:   nextMeeting,
-		Members:       members,
-		CreatedAt:     c.CreatedAt,
-		UpdatedAt:     c.UpdatedAt,
+		OwnerID: func() uint {
+			if c.OwnerID != nil {
+				return *c.OwnerID
+			}
+			return 0
+		}(),
+		Owner:       c.Owner.ToResponse(),
+		CurrentBook: currentBook,
+		NextMeeting: nextMeeting,
+		Members:     members,
+		CreatedAt:   c.CreatedAt,
+		UpdatedAt:   c.UpdatedAt,
 	}
 }
 
