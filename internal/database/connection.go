@@ -93,5 +93,6 @@ func autoMigrate(db *gorm.DB) error {
 		models.UserBookProgress{},
 		models.ClubBookAssignment{},
 		models.ReadingLog{},
+		models.ClubRating{},
 	)
 }

@@ -54,6 +54,7 @@ func (s *Server) setupRoutes() {
 	var commentRepo repository.CommentRepository = repository.NewCommentRepository(s.db)
 	var readingRepo repository.ReadingRepository = repository.NewReadingRepository(s.db)
 	var clubReadingRepo repository.ClubReadingRepository = repository.NewClubReadingRepository(s.db)
+	var clubRatingRepo repository.ClubRatingRepository = repository.NewClubRatingRepository(s.db)
 
 	var rdbAvailable bool
 	var ttl time.Duration
@@ -78,7 +79,7 @@ func (s *Server) setupRoutes() {
 	userService := services.NewUserService(userRepo, s.config)
 	userHandler := NewUserHandler(userService)
 
-	clubService := services.NewClubService(clubRepo, s.config)
+	clubService := services.NewClubService(clubRepo, clubRatingRepo, s.config)
 	clubHandler := NewClubHandler(clubService)
 
 	eventService := services.NewEventService(eventRepo, clubRepo, s.config)

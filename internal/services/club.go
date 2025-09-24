@@ -13,19 +13,21 @@ import (
 )
 
 var (
-    ErrClubNotFound   = errors.New("club not found")
-    ErrMemberNotFound = errors.New("member not found")
+	ErrClubNotFound   = errors.New("club not found")
+	ErrMemberNotFound = errors.New("member not found")
 	ErrClubNameExists = errors.New("club name already exists")
 )
 
 type ClubService struct {
-	clubRepo repository.ClubRepository
-	config   *config.Config
+	clubRepo       repository.ClubRepository
+	clubRatingRepo repository.ClubRatingRepository
+	config         *config.Config
 }
 
-func NewClubService(clubRepo repository.ClubRepository, config *config.Config) *ClubService {
+func NewClubService(clubRepo repository.ClubRepository, clubRatingRepo repository.ClubRatingRepository, config *config.Config) *ClubService {
 	return &ClubService{
 		clubRepo: clubRepo,
+		clubRatingRepo: clubRatingRepo,
 		config:   config,
 	}
 }
@@ -57,15 +59,15 @@ func (s *ClubService) CreateClub(ownerID uint, req *models.CreateClubRequest) (*
 	}
 
 	club := &models.Club{
-		Name:        req.Name,
-		Description: req.Description,
-		Location:   req.Location,
-		Genre:      req.Genre,
+		Name:          req.Name,
+		Description:   req.Description,
+		Location:      req.Location,
+		Genre:         req.Genre,
 		CoverImageURL: req.CoverImageURL,
-		IsPrivate:   req.IsPrivate,
-		MaxMembers: req.MaxMembers,
-		Tags:       req.Tags,
-		OwnerID:   &ownerID,
+		IsPrivate:     req.IsPrivate,
+		MaxMembers:    req.MaxMembers,
+		Tags:          req.Tags,
+		OwnerID:       &ownerID,
 	}
 
 	if err := s.clubRepo.Create(club); err != nil {
@@ -114,7 +116,7 @@ func (s *ClubService) GetClubByID(id uint) (*models.ClubResponse, error) {
 		}
 		return nil, err
 	}
-	
+
 	response := club.ToResponse()
 	return &response, nil
 }
@@ -205,7 +207,7 @@ func (s *ClubService) DeleteClub(id uint) error {
 	return s.clubRepo.Delete(club.ID)
 }
 
-func (s *ClubService) JoinClub(clubID, userID uint) (*models.ClubMembershipResponse,error) {
+func (s *ClubService) JoinClub(clubID, userID uint) (*models.ClubMembershipResponse, error) {
 	club, err := s.clubRepo.GetByID(clubID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -217,7 +219,7 @@ func (s *ClubService) JoinClub(clubID, userID uint) (*models.ClubMembershipRespo
 	if _, err := s.clubRepo.GetClubMemberByUserID(clubID, userID); err == nil {
 		return nil, errors.New("user is already a member of the club")
 	}
-	
+
 	//TODO: Handle invitations for private clubs or approval process
 	if club.IsPrivate {
 		return nil, errors.New("cannot join a private club without an invitation")
@@ -231,9 +233,9 @@ func (s *ClubService) JoinClub(clubID, userID uint) (*models.ClubMembershipRespo
 	}
 
 	membership := &models.ClubMembership{
-		ClubID: clubID,
-		UserID: userID,
-		Role:   "member",
+		ClubID:     clubID,
+		UserID:     userID,
+		Role:       "member",
 		IsApproved: approve,
 	}
 	if err := s.clubRepo.JoinClub(membership); err != nil {
@@ -355,4 +357,53 @@ func (s *ClubService) UpdateClubMemberFields(clubID, userID uint, req *models.Up
 	updated, _ := s.clubRepo.GetClubMemberByUserID(clubID, userID)
 	response := updated.ToResponse()
 	return &response, nil
+}
+
+func (s *ClubService) RateClub(userID, clubID uint, req *models.RateClubRequest) (*models.ClubResponse, error) {
+	if req.Rating < 1 || req.Rating > 5 {
+		return nil, errors.New("rating must be between 1 and 5")
+	}
+
+	_, err := s.clubRepo.GetByID(clubID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrClubNotFound
+		}
+		return nil, err
+	}
+
+	cr := &models.ClubRating{
+		ClubID: clubID,
+		UserID: userID,
+		Rating: req.Rating,
+		Comment: req.Comment,
+	}
+	if err := s.clubRatingRepo.UpsertRating(cr); err != nil {
+		return nil, err
+	}
+
+	avg, count, err := s.clubRatingRepo.GetAggregateForClub(clubID)
+	if err != nil { return nil, err }
+	if err := s.clubRepo.UpdateRatingAggregate(clubID, avg, count); err != nil {
+		return nil, err
+	}
+
+	club, err := s.clubRepo.GetByID(clubID)
+	if err != nil {
+		return nil, err
+	}
+
+	response := club.ToResponse()
+	return &response, nil
+}
+
+func (s *ClubService) ListClubRatings(clubID uint, limit, offset int) ([]models.ClubRating, error) {
+	_, err := s.clubRepo.GetByID(clubID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrClubNotFound
+		}
+		return nil, err
+	}
+	return s.clubRatingRepo.ListByClub(clubID, limit, offset)
 }
