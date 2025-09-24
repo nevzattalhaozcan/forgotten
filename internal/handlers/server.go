@@ -108,6 +108,7 @@ func (s *Server) setupRoutes() {
 		api.POST("/auth/login", userHandler.Login)
 		api.GET("/clubs", clubHandler.GetAllClubs)
 		api.GET("/clubs/:id", clubHandler.GetClub)
+		api.GET("/clubs/:id/ratings", clubHandler.ListClubRatings)
 	}
 
 	protected := api.Group("/")
@@ -125,6 +126,7 @@ func (s *Server) setupRoutes() {
 
 		protected.POST("/clubs/:id/join", clubHandler.JoinClub)
 		protected.POST("/clubs/:id/leave", clubHandler.LeaveClub)
+		protected.POST("/clubs/:id/ratings", clubHandler.RateClub)
 		
 		protected.GET("/clubs/:id/members", clubHandler.ListClubMembers)
 		protected.PUT("/clubs/:id/members/:user_id", clubHandler.UpdateClubMember)

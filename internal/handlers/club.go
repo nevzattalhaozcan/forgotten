@@ -439,3 +439,69 @@ func (h *ClubHandler) GetClubMember(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"member": member})
 }
+
+func (h *ClubHandler) RateClub(c *gin.Context) {
+	clubIDParam := c.Param("id")
+	clubID64, err := strconv.ParseUint(clubIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+	clubID := uint(clubID64)
+
+	userIDRaw, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	userID, ok := userIDRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	var req models.RateClubRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := h.clubService.RateClub(userID, clubID, &req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "club rated successfully",
+		"rating":  resp,
+	})
+}
+
+func (h *ClubHandler) ListClubRatings(c *gin.Context) {
+	clubIDParam := c.Param("id")
+	clubID64, err := strconv.ParseUint(clubIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+	clubID := uint(clubID64)
+
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	ratings, err := h.clubService.ListClubRatings(clubID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"ratings": ratings,
+	})
+}
