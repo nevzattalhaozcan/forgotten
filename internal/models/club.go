@@ -45,10 +45,10 @@ type Club struct {
 	MembersCount  int              `json:"members_count" gorm:"default:0"`
 	Rating        float32          `json:"rating" gorm:"default:0"`
 	Tags          pq.StringArray   `json:"tags" gorm:"type:text[]"`
-	OwnerID       uint             `json:"owner_id"`
+	OwnerID       *uint            `json:"owner_id"`
 	CurrentBook   json.RawMessage  `json:"current_book" gorm:"type:jsonb"`
 	NextMeeting   json.RawMessage  `json:"next_meeting" gorm:"type:jsonb"`
-	Owner         User             `json:"owner" gorm:"foreignKey:OwnerID"`
+	Owner         User             `json:"owner" gorm:"foreignKey:OwnerID;constraint:OnDelete:SET NULL"`
 	Moderators    []User           `json:"moderators" gorm:"many2many:club_moderators;"`
 	Members       []ClubMembership `json:"members" gorm:"foreignKey:ClubID;constraint:OnDelete:CASCADE"`
 	Posts         []Post           `json:"posts,omitempty" gorm:"foreignKey:ClubID"`
@@ -151,7 +151,7 @@ func (c *Club) ToResponse() ClubResponse {
 		MembersCount:  c.MembersCount,
 		Rating:        c.Rating,
 		Tags:          c.Tags,
-		OwnerID:       c.OwnerID,
+		OwnerID:       func() uint { if c.OwnerID != nil { return *c.OwnerID }; return 0 }(),
 		Owner:         c.Owner.ToResponse(),
 		CurrentBook:   currentBook,
 		NextMeeting:   nextMeeting,

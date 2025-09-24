@@ -76,3 +76,20 @@ type CommentRepository interface {
 	CountLikes(commentID uint) (int64, error)
 	UpdateLikesCount(commentID uint, count int) error
 }
+
+type ReadingRepository interface {
+    UpsertUserProgress(progress *models.UserBookProgress) error
+    GetUserBookProgress(userID, bookID uint) (*models.UserBookProgress, error)
+    ListUserProgress(userID uint) ([]*models.UserBookProgress, error)
+    ListUserFinished(userID uint) ([]*models.UserBookProgress, error)
+    AppendLog(log *models.ReadingLog) error
+    ListLogsByUserAndBook(userID, bookID uint) ([]models.ReadingLog, error)
+}
+
+type ClubReadingRepository interface {
+    CreateAssignment(a *models.ClubBookAssignment) error
+    CompleteAssignment(assignmentID uint) error
+    GetActiveAssignment(clubID uint) (*models.ClubBookAssignment, error)
+    ListAssignments(clubID uint) ([]models.ClubBookAssignment, error)
+    UpdateAssignment(a *models.ClubBookAssignment) error
+}

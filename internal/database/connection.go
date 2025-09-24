@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func Connect(cfg *config.Config) (*gorm.DB, error)  {
+func Connect(cfg *config.Config) (*gorm.DB, error) {
 	logLevel := logger.Silent
 	if cfg.Server.Environment == "development" {
 		logLevel = logger.Info
@@ -34,27 +34,45 @@ func Connect(cfg *config.Config) (*gorm.DB, error)  {
 	sqlDB.SetMaxIdleConns(cfg.Database.MaxIdleConns)
 
 	// Periodically publish DB connection stats
-    go func() {
-        ticker := time.NewTicker(5 * time.Second)
-        defer ticker.Stop()
-        for range ticker.C {
-            stats := sqlDB.Stats()
-            metrics.UpdateDBMetrics(stats.OpenConnections, stats.Idle)
-        }
-    }()
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			stats := sqlDB.Stats()
+			metrics.UpdateDBMetrics(stats.OpenConnections, stats.Idle)
+		}
+	}()
 
 	if err := autoMigrate(db); err != nil {
 		log.Printf("migration error: %v", err)
 		return nil, err
 	}
 
-	// Seed the database with initial data for testing
-	if cfg.Server.Environment == "development" {
-		if err := SeedForTest(db); err != nil {
-			log.Printf("seeding error: %v", err)
-			// Don't fail if seeding fails, just log it
+	if cfg.Server.Environment == "production" {
+		if cfg.Database.RunMigrations {
+			if err := RunMigrations(db, cfg.Database.MigrationsPath); err != nil {
+				log.Printf("migration error: %v", err)
+				return nil, err
+			}
+		} else {
+			log.Println("Production: skipping AutoMigrate; run SQL migrations externally (make migrate-up).")
+		}
+	} else {
+		// dev/test automigrate if enabled
+		if cfg.Database.AutoMigrate {
+			if err := autoMigrate(db); err != nil {
+				log.Printf("autoMigrate error: %v", err)
+				return nil, err
+			}
 		}
 	}
+
+	if cfg.Server.Environment == "development" {
+        if err := SeedForTest(db); err != nil {
+            log.Printf("seeding error: %v", err)
+            // non-fatal
+        }
+    }
 
 	log.Println("Database connected successfully")
 	return db, nil
@@ -67,12 +85,13 @@ func autoMigrate(db *gorm.DB) error {
 		models.Club{},
 		models.ClubMembership{},
 		models.Event{},
-        models.EventRSVP{},
-		models.Annotation{},
-		models.AnnotationLike{},
+		models.EventRSVP{},
 		models.Comment{},
 		models.CommentLike{},
 		models.Post{},
 		models.PostLike{},
+		models.UserBookProgress{},
+		models.ClubBookAssignment{},
+		models.ReadingLog{},
 	)
 }

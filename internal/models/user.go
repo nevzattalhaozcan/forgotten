@@ -31,7 +31,6 @@ type User struct {
 	ClubMemberships []ClubMembership `json:"club_memberships,omitempty" gorm:"foreignKey:UserID"`
 	Posts           []Post           `json:"posts,omitempty" gorm:"foreignKey:UserID"`
 	Comments        []Comment        `json:"comments,omitempty" gorm:"foreignKey:UserID"`
-	Annotations     []Annotation     `json:"annotations,omitempty" gorm:"foreignKey:UserID"`
 	PostLikes       []PostLike       `json:"post_likes,omitempty" gorm:"foreignKey:UserID"`
 	CommentLikes    []CommentLike    `json:"comment_likes,omitempty" gorm:"foreignKey:UserID"`
 
@@ -63,7 +62,6 @@ type UserResponse struct {
 	ClubMemberships []ClubMembership `json:"club_memberships,omitempty"`
 	Posts           []Post           `json:"posts,omitempty"`
 	Comments        []Comment        `json:"comments,omitempty"`
-	Annotations     []Annotation     `json:"annotations,omitempty"`
 	PostLikes       []PostLike       `json:"post_likes,omitempty"`
 	CommentLikes    []CommentLike    `json:"comment_likes,omitempty"`
 
@@ -128,7 +126,6 @@ func (u *User) ToResponse() UserResponse {
 		ClubMemberships: u.ClubMemberships,
 		Posts:           u.Posts,
 		Comments:        u.Comments,
-		Annotations:     u.Annotations,
 		PostLikes:       u.PostLikes,
 		CommentLikes:    u.CommentLikes,
 		CreatedAt:       u.CreatedAt,

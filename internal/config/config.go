@@ -26,6 +26,9 @@ type DatabaseConfig struct {
 	URL string
 	MaxOpenConns int
 	MaxIdleConns int
+	AutoMigrate bool
+	RunMigrations bool
+	MigrationsPath string
 }
 
 type JWTConfig struct {
@@ -52,16 +55,22 @@ func Load() *Config {
 		log.Printf("no .env file found or error loading it: %v", err)
 	}
 
+	env := getEnv("ENVIRONMENT", "development")
+    defaultAutoMigrate := env != "production"
+
 	return &Config{
 		Server: ServerConfig{
 			Port: getEnv("PORT", "8080"),
 			Host: getEnv("HOST", "localhost"),
-			Environment: getEnv("ENVIRONMENT", "development"),
+			Environment: getEnv("ENVIRONMENT", env),
 		},
 		Database: DatabaseConfig{
 			URL: getEnv("DATABASE_URL", "postgres://user:password@localhost:5432/dbname?sslmode=disable"),
 			MaxOpenConns: getEnvAsInt("DB_MAX_OPEN_CONNS", 25),
 			MaxIdleConns: getEnvAsInt("DB_MAX_IDLE_CONNS", 5),
+			AutoMigrate:    getEnvAsBool("DB_AUTO_MIGRATE", defaultAutoMigrate),
+            RunMigrations:  getEnvAsBool("DB_RUN_MIGRATIONS", false),
+            MigrationsPath: getEnv("MIGRATIONS_PATH", "internal/database/migrations"),
 		},
 		JWT: JWTConfig{
 			Secret: getEnv("JWT_SECRET", "default_secret"),

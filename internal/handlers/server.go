@@ -52,6 +52,8 @@ func (s *Server) setupRoutes() {
 	var bookRepo repository.BookRepository = repository.NewBookRepository(s.db)
 	var postRepo repository.PostRepository = repository.NewPostRepository(s.db)
 	var commentRepo repository.CommentRepository = repository.NewCommentRepository(s.db)
+	var readingRepo repository.ReadingRepository = repository.NewReadingRepository(s.db)
+	var clubReadingRepo repository.ClubReadingRepository = repository.NewClubReadingRepository(s.db)
 
 	var rdbAvailable bool
 	var ttl time.Duration
@@ -90,6 +92,9 @@ func (s *Server) setupRoutes() {
 
 	commentService := services.NewCommentService(commentRepo, postRepo, userRepo, s.config)
 	commentHandler := NewCommentHandler(commentService)
+
+	readingService := services.NewReadingService(s.config, userRepo, bookRepo, clubRepo, readingRepo, clubReadingRepo)
+	readingHandler := NewReadingHandler(readingService)
 
 	if s.config.Server.Environment != "production" {
 		s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -159,6 +164,17 @@ func (s *Server) setupRoutes() {
 		protected.POST("/comments/:id/like", commentHandler.LikeComment)
 		protected.POST("/comments/:id/unlike", commentHandler.UnlikeComment)
 		protected.GET("/comments/:id/likes", commentHandler.ListLikesByCommentID)
+
+		protected.POST("/users/:id/reading/start", readingHandler.StartReading)
+        protected.PATCH("/users/:id/reading/:bookID/progress", readingHandler.UpdateProgress)
+        protected.POST("/users/:id/reading/:bookID/complete", readingHandler.CompleteReading)
+        protected.GET("/users/:id/reading", readingHandler.ListUserProgress)
+        protected.GET("/users/:id/reading/history", readingHandler.UserReadingHistory)
+
+        protected.POST("/clubs/:id/reading/assign", readingHandler.AssignBookToClub)
+        protected.PATCH("/clubs/:id/reading/checkpoint", readingHandler.UpdateClubCheckpoint)
+        protected.POST("/clubs/:id/reading/complete", readingHandler.CompleteClubAssignment)
+        protected.GET("/clubs/:id/reading", readingHandler.ListClubAssignments)
 	}
 }
 

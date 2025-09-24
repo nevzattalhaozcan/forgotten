@@ -36,7 +36,7 @@ func (s *ClubService) CanManageClub(clubID, userID uint) bool {
 		return false
 	}
 
-	if club.OwnerID == userID {
+	if club.OwnerID != nil && *club.OwnerID == userID {
 		return true
 	}
 
@@ -65,7 +65,7 @@ func (s *ClubService) CreateClub(ownerID uint, req *models.CreateClubRequest) (*
 		IsPrivate:   req.IsPrivate,
 		MaxMembers: req.MaxMembers,
 		Tags:       req.Tags,
-		OwnerID:   ownerID,
+		OwnerID:   &ownerID,
 	}
 
 	if err := s.clubRepo.Create(club); err != nil {

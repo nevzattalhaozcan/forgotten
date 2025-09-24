@@ -1,0 +1,11 @@
+BEGIN;
+
+ALTER TABLE clubs ALTER COLUMN owner_id SET NOT NULL;
+
+ALTER TABLE clubs DROP CONSTRAINT IF EXISTS fk_users_owned_clubs;
+
+ALTER TABLE clubs
+  ADD CONSTRAINT fk_users_owned_clubs
+  FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE RESTRICT;
+
+COMMIT;

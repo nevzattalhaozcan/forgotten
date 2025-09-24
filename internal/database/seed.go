@@ -32,13 +32,10 @@ type SeedData struct {
 func Seed(db *gorm.DB) error {
 	log.Println("starting database seeding")
 
-	var userCount int64
-
-	db.Model(&models.User{}).Count(&userCount)
-	if userCount > 0 {
-		log.Println("database already seeded")
-		return nil
-	}
+	if err := truncateAll(db); err != nil {
+        log.Printf("truncate error: %v", err)
+        return err
+    }
 
 	data, err := os.ReadFile("data/seed_users.json")
 	if err != nil {
@@ -87,13 +84,32 @@ func Seed(db *gorm.DB) error {
 func SeedForTest(db *gorm.DB) error {
 	log.Println("starting test database seeding")
 
-	if err := db.Exec("DELETE FROM users").Error; err != nil {
-		return err
-	}
+	if err := truncateAll(db); err != nil {
+        log.Printf("truncate error: %v", err)
+        return err
+    }
 
 	if err := db.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1").Error; err != nil {
 		log.Printf("could not reset user ID sequence: %v", err)
 	}
 
 	return Seed(db)
+}
+
+func truncateAll(db *gorm.DB) error {
+    return db.Exec(`
+        TRUNCATE TABLE 
+            post_likes,
+            comment_likes,
+            comments,
+            posts,
+            event_rsvps,
+            events,
+            club_moderators,
+            club_memberships,
+            clubs,
+            books,
+            users
+        RESTART IDENTITY CASCADE
+    `).Error
 }
