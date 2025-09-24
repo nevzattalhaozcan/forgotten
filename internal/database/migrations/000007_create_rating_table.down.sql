@@ -1,0 +1,6 @@
+BEGIN;
+
+DROP TABLE IF EXISTS club_ratings;
+ALTER TABLE clubs DROP COLUMN IF EXISTS ratings_count;
+
+COMMIT;

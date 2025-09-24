@@ -1,0 +1,19 @@
+BEGIN;
+
+ALTER TABLE clubs
+  ADD COLUMN IF NOT EXISTS ratings_count INT NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS club_ratings (
+  id BIGSERIAL PRIMARY KEY,
+  club_id BIGINT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (club_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_club_ratings_club ON club_ratings(club_id);
+
+COMMIT;
