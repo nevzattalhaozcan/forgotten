@@ -100,13 +100,19 @@ func (r *postRepository) CountLikes(postID uint) (int64, error) {
 }
 
 func (r *postRepository) ListLikesByPostID(postID uint) ([]models.PostLikeResponse, error) {
-	var likes []models.PostLikeResponse
+	var likes []models.PostLike
 	if err := r.db.
+		Preload("User").
 		Where("post_id = ?", postID).
 		Find(&likes).Error; err != nil {
 		return nil, err
 	}
-	return likes, nil
+
+	res := make([]models.PostLikeResponse, 0, len(likes))
+    for _, l := range likes {
+        res = append(res, l.ToResponse())
+    }
+    return res, nil
 }
 
 func (r *postRepository) HasUserLiked(userID, postID uint) (bool, error) {

@@ -79,13 +79,19 @@ func (r *commentRepository) CountLikes(commentID uint) (int64, error) {
 }
 
 func (r *commentRepository) ListCommentLikes(commentID uint) ([]models.CommentLikeResponse, error) {
-	var likes []models.CommentLikeResponse
+	var likes []models.CommentLike
 	if err := r.db.
+		Preload("User").
 		Where("comment_id = ?", commentID).
 		Find(&likes).Error; err != nil {
 		return nil, err
 	}
-	return likes, nil
+
+	res := make([]models.CommentLikeResponse, 0, len(likes))
+    for _, l := range likes {
+        res = append(res, l.ToResponse())
+    }
+    return res, nil
 }
 
 func (r *commentRepository) HasUserLiked(userID, commentID uint) (bool, error) {
