@@ -273,7 +273,7 @@ func (s *ClubService) LeaveClub(clubID, userID uint, ownerAction *models.OwnerLe
 		}
 		return err
 	}
-	m, err := s.clubRepo.GetClubMemberByUserID(clubID, userID)
+	_, err = s.clubRepo.GetClubMemberByUserID(clubID, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("not a member")
@@ -281,6 +281,7 @@ func (s *ClubService) LeaveClub(clubID, userID uint, ownerAction *models.OwnerLe
 		return err
 	}
 	
+	// owner leaving
 	isOwner := club.OwnerID != nil && *club.OwnerID == userID
 	if isOwner {
 		if ownerAction == nil || ownerAction.Action == "" {
@@ -296,16 +297,24 @@ func (s *ClubService) LeaveClub(clubID, userID uint, ownerAction *models.OwnerLe
 			if err := s.TransferOwnership(clubID, userID, *ownerAction.NewOwnerID); err != nil {
 				return err
 			}
+
 			if err := s.clubRepo.LeaveClub(clubID, userID); err != nil {
-				return err
-			}
-			if m.IsApproved && club.MembersCount > 0 {
-				club.MembersCount--
-				if err := s.clubRepo.Update(club); err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					// continue if not found
+				} else {
 					return err
 				}
 			}
-			if club.MembersCount == 0 {
+			count, err := s.clubRepo.CountApprovedMembers(clubID)
+			if err != nil {
+				return err
+			}
+			club.MembersCount = int(count)
+			if err := s.clubRepo.Update(club); err != nil {
+				return err
+			}
+
+			if count == 0 {
 				return s.clubRepo.Delete(club.ID)
 			}
 			return nil
@@ -314,17 +323,24 @@ func (s *ClubService) LeaveClub(clubID, userID uint, ownerAction *models.OwnerLe
 		}
 	}
 
+	// non-owner leaving
 	if err := s.clubRepo.LeaveClub(clubID, userID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("not a member")
+		}
 		return err
 	}
-	if m.IsApproved && club.MembersCount > 0 {
-		club.MembersCount--
-		if err := s.clubRepo.Update(club); err != nil {
-			return err
-		}
+	
+	count, err := s.clubRepo.CountApprovedMembers(clubID)
+	if err != nil {
+		return err
+	}
+	club.MembersCount = int(count)
+	if err := s.clubRepo.Update(club); err != nil {
+		return err
 	}
 
-	if club.MembersCount == 0 {
+	if count == 0 {
 		return s.clubRepo.Delete(club.ID)
 	}
 

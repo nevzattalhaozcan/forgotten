@@ -252,6 +252,10 @@ func (h *ClubHandler) JoinClub(c *gin.Context) {
 
 	membership, err := h.clubService.JoinClub(uint(clubID), uint(userID))
 	if err != nil {
+		if err.Error() == "user is already a member of the club" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

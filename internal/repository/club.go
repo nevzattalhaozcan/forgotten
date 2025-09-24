@@ -87,7 +87,24 @@ func (r *clubRepository) JoinClub(membership *models.ClubMembership) error {
 }
 
 func (r *clubRepository) LeaveClub(clubID, userID uint) error {
-	return r.db.Where("club_id = ? AND user_id = ?", clubID, userID).Delete(&models.ClubMembership{}).Error
+	result := r.db.Where("club_id = ? AND user_id = ?", clubID, userID).Delete(&models.ClubMembership{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (r *clubRepository) CountApprovedMembers(clubID uint) (int64, error) {
+	var count int64
+	if err := r.db.Model(&models.ClubMembership{}).
+		Where("club_id = ? AND is_approved = true", clubID).
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 func (r *clubRepository) ListClubMembers(clubID uint) ([]*models.ClubMembership, error) {
@@ -133,7 +150,7 @@ func (r *clubRatingRepository) UpsertRating(cr *models.ClubRating) error {
 	if err != nil {
 		return err
 	}
-	
+
 	existing.Rating = cr.Rating
 	existing.Comment = cr.Comment
 	return r.db.Save(&existing).Error
@@ -150,7 +167,10 @@ func (r *clubRatingRepository) ListByClub(clubID uint, limit, offset int) ([]mod
 }
 
 func (r *clubRatingRepository) GetAggregateForClub(clubID uint) (float32, int, error) {
-	type agg struct { Avg float64; Count int64 }
+	type agg struct {
+		Avg   float64
+		Count int64
+	}
 	var a agg
 	err := r.db.Model(&models.ClubRating{}).
 		Select("COALESCE(AVG(rating), 0) AS avg, COUNT(*) as count").
@@ -161,5 +181,5 @@ func (r *clubRatingRepository) GetAggregateForClub(clubID uint) (float32, int, e
 }
 
 func (r *clubRepository) UpdateMembership(m *models.ClubMembership) error {
-    return r.db.Save(m).Error
+	return r.db.Save(m).Error
 }
