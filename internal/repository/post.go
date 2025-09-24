@@ -23,6 +23,7 @@ func (r *postRepository) GetByID(id uint) (*models.Post, error) {
 		Preload("User").
 		Preload("Comments").
 		Preload("Likes").
+		Preload("Likes.User").
 		First(&post, id).Error; err != nil {
 		return nil, err
 	}
@@ -102,6 +103,7 @@ func (r *postRepository) ListLikesByPostID(postID uint) ([]models.PostLike, erro
 	var likes []models.PostLike
 	if err := r.db.
 		Preload("User").
+		Preload("Post").
 		Where("post_id = ?", postID).
 		Find(&likes).Error; err != nil {
 		return nil, err

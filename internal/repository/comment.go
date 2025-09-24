@@ -23,6 +23,7 @@ func (r *commentRepository) GetByID(id uint) (*models.Comment, error) {
 	if err := r.db.
 		Preload("User").
 		Preload("Likes").
+		Preload("Likes.User").
 		First(&comment, id).Error; err != nil {
 		return nil, err
 	}
@@ -81,6 +82,7 @@ func (r *commentRepository) ListCommentLikes(commentID uint) ([]models.CommentLi
 	var likes []models.CommentLike
 	if err := r.db.
 		Preload("User").
+		Preload("Comment").
 		Where("comment_id = ?", commentID).
 		Find(&likes).Error; err != nil {
 		return nil, err

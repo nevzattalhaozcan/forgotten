@@ -54,8 +54,12 @@ func (s *PostService) CreatePost(userID uint, req *models.CreatePostRequest) (*m
 		return nil, err
 	}
 
-	response := post.ToResponse()
-	return &response, nil
+	created, err := s.postRepo.GetByID(post.ID)
+    if err != nil {
+        return nil, err
+    }
+    response := created.ToResponse()
+    return &response, nil
 }
 
 func (s *PostService) GetPostByID(id uint) (*models.PostResponse, error) {
@@ -97,8 +101,12 @@ func (s *PostService) UpdatePost(id uint, req *models.UpdatePostRequest) (*model
 		return nil, err
 	}
 
-	response := post.ToResponse()
-	return &response, nil
+	created, err := s.postRepo.GetByID(post.ID)
+    if err != nil {
+        return nil, err
+    }
+    response := created.ToResponse()
+    return &response, nil
 }
 
 func (s *PostService) DeletePost(id uint) error {

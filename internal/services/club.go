@@ -92,8 +92,12 @@ func (s *ClubService) CreateClub(ownerID uint, req *models.CreateClubRequest) (*
 		return nil, err
 	}
 
-	response := club.ToResponse()
-	return &response, nil
+	created, err := s.clubRepo.GetByID(club.ID)
+    if err != nil {
+        return nil, err
+    }
+    response := created.ToResponse()
+    return &response, nil
 }
 
 func isUniqueViolation(err error) bool {
@@ -191,8 +195,12 @@ func (s *ClubService) UpdateClub(id uint, req *models.UpdateClubRequest) (*model
 		return nil, err
 	}
 
-	response := club.ToResponse()
-	return &response, nil
+	created, err := s.clubRepo.GetByID(club.ID)
+    if err != nil {
+        return nil, err
+    }
+    response := created.ToResponse()
+    return &response, nil
 }
 
 func (s *ClubService) DeleteClub(id uint) error {
