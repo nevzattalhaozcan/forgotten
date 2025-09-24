@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type clubRepository struct {
@@ -50,7 +51,7 @@ func (r *clubRepository) GetByName(name string) (*models.Club, error) {
 }
 
 func (r *clubRepository) Update(club *models.Club) error {
-	return r.db.Save(club).Error
+	return r.db.Omit(clause.Associations).Save(club).Error
 }
 
 func (r *clubRepository) UpdateRatingAggregate(clubID uint, avg float32, count int) error {
