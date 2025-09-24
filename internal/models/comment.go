@@ -52,6 +52,20 @@ type CommentResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type CommentLikeResponse struct {
+    ID        uint         `json:"id"`
+    User      UserResponse `json:"user"`
+    CreatedAt time.Time    `json:"created_at"`
+}
+
+func (cl CommentLike) ToResponse() CommentLikeResponse {
+    return CommentLikeResponse{
+        ID:        cl.ID,
+        User:      cl.User.ToResponse(),
+        CreatedAt: cl.CreatedAt,
+    }
+}
+
 func (c *Comment) ToResponse() CommentResponse {
 	return CommentResponse{
 		ID:         c.ID,

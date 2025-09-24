@@ -63,7 +63,7 @@ type PostRepository interface {
 	ListAll() ([]models.Post, error)
 	AddLike(like *models.PostLike) error
 	RemoveLike(userID, postID uint) error
-	ListLikesByPostID(postID uint) ([]models.PostLike, error)
+	ListLikesByPostID(postID uint) ([]models.PostLikeResponse, error)
 	HasUserLiked(userID, postID uint) (bool, error)
 	CountLikes(postID uint) (int64, error)
 	UpdateLikesCount(postID uint, count int) error
@@ -78,7 +78,7 @@ type CommentRepository interface {
 	ListByUserID(userID uint) ([]models.Comment, error)
 	LikeComment(like *models.CommentLike) error
 	UnlikeComment(userID, commentID uint) error
-	ListCommentLikes(commentID uint) ([]models.CommentLike, error)
+	ListCommentLikes(commentID uint) ([]models.CommentLikeResponse, error)
 	HasUserLiked(userID, commentID uint) (bool, error)
 	CountLikes(commentID uint) (int64, error)
 	UpdateLikesCount(commentID uint, count int) error

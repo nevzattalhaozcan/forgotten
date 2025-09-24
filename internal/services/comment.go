@@ -217,7 +217,7 @@ func (s *CommentService) UnlikeComment(userID, commentID uint) error {
 	return s.commentRepo.UpdateLikesCount(commentID, int(count))
 }
 
-func (s *CommentService) ListLikesByCommentID(commentID uint) ([]models.CommentLike, error) {
+func (s *CommentService) ListLikesByCommentID(commentID uint) ([]models.CommentLikeResponse, error) {
 	_, err := s.commentRepo.GetByID(commentID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

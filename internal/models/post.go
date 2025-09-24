@@ -71,6 +71,20 @@ type PostResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type PostLikeResponse struct {
+    ID        uint         `json:"id"`
+    User      UserResponse `json:"user"`
+    CreatedAt time.Time    `json:"created_at"`
+}
+
+func (pl PostLike) ToResponse() PostLikeResponse {
+    return PostLikeResponse{
+        ID:        pl.ID,
+        User:      pl.User.ToResponse(),
+        CreatedAt: pl.CreatedAt,
+    }
+}
+
 func (p *Post) ToResponse() PostResponse {
 	return PostResponse{
 		ID:            p.ID,

@@ -265,7 +265,7 @@ func (s *PostService) UnlikePost(userID, postID uint) error {
 	return s.postRepo.UpdateLikesCount(postID, int(count))
 }
 
-func (s *PostService) ListLikesByPostID(postID uint) ([]models.PostLike, error) {
+func (s *PostService) ListLikesByPostID(postID uint) ([]models.PostLikeResponse, error) {
 	_, err := s.postRepo.GetByID(postID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

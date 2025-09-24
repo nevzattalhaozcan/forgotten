@@ -99,11 +99,9 @@ func (r *postRepository) CountLikes(postID uint) (int64, error) {
 	return count, nil
 }
 
-func (r *postRepository) ListLikesByPostID(postID uint) ([]models.PostLike, error) {
-	var likes []models.PostLike
+func (r *postRepository) ListLikesByPostID(postID uint) ([]models.PostLikeResponse, error) {
+	var likes []models.PostLikeResponse
 	if err := r.db.
-		Preload("User").
-		Preload("Post").
 		Where("post_id = ?", postID).
 		Find(&likes).Error; err != nil {
 		return nil, err

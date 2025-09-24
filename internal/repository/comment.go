@@ -78,11 +78,9 @@ func (r *commentRepository) CountLikes(commentID uint) (int64, error) {
 	return count, nil
 }
 
-func (r *commentRepository) ListCommentLikes(commentID uint) ([]models.CommentLike, error) {
-	var likes []models.CommentLike
+func (r *commentRepository) ListCommentLikes(commentID uint) ([]models.CommentLikeResponse, error) {
+	var likes []models.CommentLikeResponse
 	if err := r.db.
-		Preload("User").
-		Preload("Comment").
 		Where("comment_id = ?", commentID).
 		Find(&likes).Error; err != nil {
 		return nil, err
