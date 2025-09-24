@@ -171,6 +171,7 @@ func (c *Club) ToResponse() ClubResponse {
 		MaxMembers:    c.MaxMembers,
 		MembersCount:  c.MembersCount,
 		Rating:        c.Rating,
+		RatingsCount:  c.RatingsCount,
 		Tags:          c.Tags,
 		OwnerID: func() uint {
 			if c.OwnerID != nil {
