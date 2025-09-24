@@ -108,6 +108,11 @@ type UpdateClubRatingRequest struct {
 	Rating float32 `json:"rating" validate:"required,gte=0,lte=5"`
 }
 
+type OwnerLeaveRequest struct {
+	Action     string `json:"action" validate:"omitempty,oneof=transfer close"`
+    NewOwnerID *uint  `json:"new_owner_id,omitempty"`
+}
+
 type ClubMembershipResponse struct {
 	ID         uint         `json:"id"`
 	UserID     uint         `json:"user_id"`

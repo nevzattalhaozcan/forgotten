@@ -159,3 +159,7 @@ func (r *clubRatingRepository) GetAggregateForClub(clubID uint) (float32, int, e
 
 	return float32(a.Avg), int(a.Count), err
 }
+
+func (r *clubRepository) UpdateMembership(m *models.ClubMembership) error {
+    return r.db.Save(m).Error
+}

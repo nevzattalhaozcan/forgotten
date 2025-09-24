@@ -265,7 +265,7 @@ func (s *ClubService) JoinClub(clubID, userID uint) (*models.ClubMembershipRespo
 	return &response, nil
 }
 
-func (s *ClubService) LeaveClub(clubID, userID uint) error {
+func (s *ClubService) LeaveClub(clubID, userID uint, ownerAction *models.OwnerLeaveRequest) error {
 	club, err := s.clubRepo.GetByID(clubID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -280,13 +280,55 @@ func (s *ClubService) LeaveClub(clubID, userID uint) error {
 		}
 		return err
 	}
+	
+	isOwner := club.OwnerID != nil && *club.OwnerID == userID
+	if isOwner {
+		if ownerAction == nil || ownerAction.Action == "" {
+			return errors.New("owner must choose action: transfer or close")
+		}
+		switch ownerAction.Action {
+		case "close":
+			return s.clubRepo.Delete(club.ID)
+		case "transfer":
+			if ownerAction.NewOwnerID == nil {
+				return errors.New("new_owner_id is required for transfer")
+			}
+			if err := s.TransferOwnership(clubID, userID, *ownerAction.NewOwnerID); err != nil {
+				return err
+			}
+			if err := s.clubRepo.LeaveClub(clubID, userID); err != nil {
+				return err
+			}
+			if m.IsApproved && club.MembersCount > 0 {
+				club.MembersCount--
+				if err := s.clubRepo.Update(club); err != nil {
+					return err
+				}
+			}
+			if club.MembersCount == 0 {
+				return s.clubRepo.Delete(club.ID)
+			}
+			return nil
+		default:
+			return errors.New("invalid action; must be one of: transfer, close")
+		}
+	}
+
+	if err := s.clubRepo.LeaveClub(clubID, userID); err != nil {
+		return err
+	}
 	if m.IsApproved && club.MembersCount > 0 {
 		club.MembersCount--
 		if err := s.clubRepo.Update(club); err != nil {
 			return err
 		}
 	}
-	return s.clubRepo.LeaveClub(clubID, userID)
+
+	if club.MembersCount == 0 {
+		return s.clubRepo.Delete(club.ID)
+	}
+
+	return nil
 }
 
 func (s *ClubService) ListClubMembers(clubID uint) ([]*models.ClubMembership, error) {
@@ -414,4 +456,45 @@ func (s *ClubService) ListClubRatings(clubID uint, limit, offset int) ([]models.
 		return nil, err
 	}
 	return s.clubRatingRepo.ListByClub(clubID, limit, offset)
+}
+
+func (s *ClubService) TransferOwnership(clubID, currentOwnerID, newOwnerID uint) error {
+	club, err := s.clubRepo.GetByID(clubID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrClubNotFound
+		}
+		return err
+	}
+	if club.OwnerID == nil || *club.OwnerID != currentOwnerID {
+		return errors.New("only the owner can transfer ownership")
+	}
+	if newOwnerID == currentOwnerID {
+		return errors.New("new owner must be different from current owner")
+	}
+
+	newOwnerMembership, err := s.clubRepo.GetClubMemberByUserID(clubID, newOwnerID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("new owner must be a member of the club")
+		}
+		return err
+	}
+	if !newOwnerMembership.IsApproved {
+		return errors.New("new owner must be an approved member of the club")
+	}
+
+	club.OwnerID = &newOwnerID
+	if err := s.clubRepo.Update(club); err != nil {
+		return err
+	}
+
+	if newOwnerMembership.Role != "admin" {
+		newOwnerMembership.Role = "admin"
+		if err := s.clubRepo.UpdateMembership(newOwnerMembership); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

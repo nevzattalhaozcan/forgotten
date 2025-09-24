@@ -291,10 +291,30 @@ func (h *ClubHandler) LeaveClub(c *gin.Context) {
 		return
 	}
 
-	err = h.clubService.LeaveClub(uint(clubID), uint(userID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	var req models.OwnerLeaveRequest
+	var ownerAction *models.OwnerLeaveRequest
+	if err := c.ShouldBindJSON(&req); err == nil {
+		ownerAction = &req
+	}
+
+	if err := h.clubService.LeaveClub(uint(clubID), userID, ownerAction); err != nil {
+		switch err.Error() {
+		case "club not found", "not a member":
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		case "owner must choose action: transfer or close",
+            "new_owner_id is required for transfer",
+            "only the owner can transfer ownership",
+            "new owner must be different from current owner",
+            "new owner must be a member of the club",
+            "new owner must be an approved member",
+            "invalid action; must be one of: transfer, close":
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
