@@ -26,6 +26,13 @@ type ClubRepository interface {
 	ListClubMembers(clubID uint) ([]*models.ClubMembership, error)
 	UpdateClubMember(membership *models.ClubMembership) error
 	GetClubMemberByUserID(clubID, userID uint) (*models.ClubMembership, error)
+	UpdateRatingAggregate(clubID uint, avg float32, count int) error
+}
+
+type ClubRatingRepository interface {
+    UpsertRating(r *models.ClubRating) error
+    ListByClub(clubID uint, limit, offset int) ([]models.ClubRating, error)
+    GetAggregateForClub(clubID uint) (avg float32, count int, err error)
 }
 
 type EventRepository interface {

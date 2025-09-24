@@ -9,8 +9,16 @@ type clubRepository struct {
 	db *gorm.DB
 }
 
+type clubRatingRepository struct {
+	db *gorm.DB
+}
+
 func NewClubRepository(db *gorm.DB) *clubRepository {
 	return &clubRepository{db: db}
+}
+
+func NewClubRatingRepository(db *gorm.DB) *clubRatingRepository {
+	return &clubRatingRepository{db: db}
 }
 
 func (r *clubRepository) Create(club *models.Club) error {
@@ -43,6 +51,15 @@ func (r *clubRepository) GetByName(name string) (*models.Club, error) {
 
 func (r *clubRepository) Update(club *models.Club) error {
 	return r.db.Save(club).Error
+}
+
+func (r *clubRepository) UpdateRatingAggregate(clubID uint, avg float32, count int) error {
+	return r.db.Model(&models.Club{}).
+		Where("id = ?", clubID).
+		Updates(map[string]interface{}{
+			"rating":        avg,
+			"ratings_count": count,
+		}).Error
 }
 
 func (r *clubRepository) Delete(id uint) error {
@@ -105,4 +122,40 @@ func (r *clubRepository) GetClubMemberByUserID(clubID, userID uint) (*models.Clu
 		return nil, err
 	}
 	return &membership, nil
+}
+
+func (r *clubRatingRepository) UpsertRating(cr *models.ClubRating) error {
+	var existing models.ClubRating
+	err := r.db.Where("club_id = ? AND user_id = ?", cr.ClubID, cr.UserID).First(&existing).Error
+	if err == gorm.ErrRecordNotFound {
+		return r.db.Create(cr).Error
+	}
+	if err != nil {
+		return err
+	}
+	
+	existing.Rating = cr.Rating
+	existing.Comment = cr.Comment
+	return r.db.Save(&existing).Error
+}
+
+func (r *clubRatingRepository) ListByClub(clubID uint, limit, offset int) ([]models.ClubRating, error) {
+	var out []models.ClubRating
+	err := r.db.Where("club_id = ?", clubID).
+		Order("updated_at desc").
+		Limit(limit).Offset(offset).
+		Find(&out).Error
+
+	return out, err
+}
+
+func (r *clubRatingRepository) GetAggregateForClub(clubID uint) (float32, int, error) {
+	type agg struct { Avg float64; Count int64 }
+	var a agg
+	err := r.db.Model(&models.ClubRating{}).
+		Select("COALESCE(AVG(rating), 0) AS avg, COUNT(*) as count").
+		Where("club_id = ?", clubID).
+		Scan(&a).Error
+
+	return float32(a.Avg), int(a.Count), err
 }
