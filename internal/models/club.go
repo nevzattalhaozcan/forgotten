@@ -100,7 +100,7 @@ type UpdateClubRequest struct {
 
 type UpdateClubMembershipRequest struct {
 	UserID     *uint   `json:"user_id" validate:"omitempty"`
-	Role       *string `json:"role" validate:"omitempty,oneof=member moderator admin"`
+	Role       *string `json:"role" validate:"omitempty,oneof=member moderator club_admin"`
 	IsApproved *bool   `json:"is_approved" validate:"omitempty"`
 }
 

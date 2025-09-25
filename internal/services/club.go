@@ -49,7 +49,7 @@ func (s *ClubService) CanManageClub(clubID, userID uint) bool {
 	if !member.IsApproved {
 		return false
 	}
-	return member.Role == "moderator" || member.Role == "admin"
+	return member.Role == "moderator" || member.Role == "club_admin"
 }
 
 func (s *ClubService) CreateClub(ownerID uint, req *models.CreateClubRequest) (*models.ClubResponse, error) {
@@ -80,7 +80,7 @@ func (s *ClubService) CreateClub(ownerID uint, req *models.CreateClubRequest) (*
 	ownerMembership := &models.ClubMembership{
 		ClubID:     club.ID,
 		UserID:     ownerID,
-		Role:       "admin",
+		Role:       "club_admin",
 		IsApproved: true,
 	}
 	if err := s.clubRepo.JoinClub(ownerMembership); err != nil {
@@ -505,8 +505,8 @@ func (s *ClubService) TransferOwnership(clubID, currentOwnerID, newOwnerID uint)
 		return err
 	}
 
-	if newOwnerMembership.Role != "admin" {
-		newOwnerMembership.Role = "admin"
+	if newOwnerMembership.Role != "club_admin" {
+		newOwnerMembership.Role = "club_admin"
 		if err := s.clubRepo.UpdateMembership(newOwnerMembership); err != nil {
 			return err
 		}

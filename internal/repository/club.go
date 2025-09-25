@@ -111,7 +111,7 @@ func (r *clubRepository) CountApprovedMembers(clubID uint) (int64, error) {
 func (r *clubRepository) ListClubMembers(clubID uint) ([]*models.ClubMembership, error) {
 	var members []*models.ClubMembership
 	err := r.db.
-		Where("club_id = ?", clubID).
+		Where("club_id = ? AND is_approved = true", clubID).
 		Preload("User").
 		Find(&members).Error
 	if err != nil {
