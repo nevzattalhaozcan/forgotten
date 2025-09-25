@@ -78,7 +78,7 @@ func AuthorizeSelf() gin.HandlerFunc {
 }
 
 /** Restrict access to certain roles
- * @param allowedRoles - list of roles that are allowed to access the route
+ * @param allowedRoles - list of roles that are allowed to access the route (admin user moderator support superuser)
  */
 func RestrictToRoles(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {

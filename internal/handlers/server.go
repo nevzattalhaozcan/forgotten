@@ -129,22 +129,22 @@ func (s *Server) setupRoutes() {
 		protected.POST("/clubs/:id/ratings", clubHandler.RateClub)
 		
 		protected.GET("/clubs/:id/members", clubHandler.ListClubMembers)
-		protected.PUT("/clubs/:id/members/:user_id", clubHandler.UpdateClubMember)
+		protected.PUT("/clubs/:id/members/:user_id", middleware.AuthorizeSelf(), clubHandler.UpdateClubMember)
 		protected.GET("/clubs/:id/members/:user_id", clubHandler.GetClubMember)
 
-		protected.POST("/clubs/:id/events", eventHandler.CreateEvent)
+		protected.POST("/clubs/:id/events", middleware.RestrictToRoles("admin", "moderator"), eventHandler.CreateEvent)
 		protected.GET("/clubs/:id/events", eventHandler.GetClubEvents)
 		protected.GET("/events/:id", eventHandler.GetEvent)
-		protected.PUT("/events/:id", eventHandler.UpdateEvent)
-		protected.DELETE("/events/:id", eventHandler.DeleteEvent)
+		protected.PUT("/events/:id", middleware.RestrictToRoles("admin", "moderator"), eventHandler.UpdateEvent)
+		protected.DELETE("/events/:id", middleware.RestrictToRoles("admin", "moderator"), eventHandler.DeleteEvent)
 
 		protected.POST("/events/:id/rsvp", eventHandler.RSVPToEvent)
-		protected.GET("/events/:id/attendees", eventHandler.GetEventAttendees)
+		protected.GET("/events/:id/attendees", middleware.RestrictToRoles("admin", "moderator"), eventHandler.GetEventAttendees)
 
-		protected.POST("/books", bookHandler.CreateBook)
+		protected.POST("/books", middleware.RestrictToRoles("admin"), bookHandler.CreateBook)
 		protected.GET("/books/:id", bookHandler.GetBookByID)
-		protected.PUT("/books/:id", bookHandler.UpdateBook)
-		protected.DELETE("/books/:id", bookHandler.DeleteBook)
+		protected.PUT("/books/:id", middleware.RestrictToRoles("admin"), bookHandler.UpdateBook)
+		protected.DELETE("/books/:id", middleware.RestrictToRoles("admin"), bookHandler.DeleteBook)
 		protected.GET("/books", bookHandler.ListBooks)
 
 		protected.POST("/posts", postHandler.CreatePost)
@@ -169,15 +169,15 @@ func (s *Server) setupRoutes() {
 		protected.GET("/comments/:id/likes", commentHandler.ListLikesByCommentID)
 
 		protected.POST("/users/:id/reading/sync", readingHandler.SyncUserStats)
-		protected.POST("/users/:id/reading/start", readingHandler.StartReading)
-        protected.PATCH("/users/:id/reading/:bookID/progress", readingHandler.UpdateProgress)
-        protected.POST("/users/:id/reading/:bookID/complete", readingHandler.CompleteReading)
-        protected.GET("/users/:id/reading", readingHandler.ListUserProgress)
+		protected.POST("/users/:id/reading/start", middleware.AuthorizeSelf(), readingHandler.StartReading)
+        protected.PATCH("/users/:id/reading/:bookID/progress", middleware.AuthorizeSelf(), readingHandler.UpdateProgress)
+        protected.POST("/users/:id/reading/:bookID/complete", middleware.AuthorizeSelf(), readingHandler.CompleteReading)
+        protected.GET("/users/:id/reading", middleware.AuthorizeSelf(), readingHandler.ListUserProgress)
         protected.GET("/users/:id/reading/history", readingHandler.UserReadingHistory)
 
-        protected.POST("/clubs/:id/reading/assign", readingHandler.AssignBookToClub)
-        protected.PATCH("/clubs/:id/reading/checkpoint", readingHandler.UpdateClubCheckpoint)
-        protected.POST("/clubs/:id/reading/complete", readingHandler.CompleteClubAssignment)
+        protected.POST("/clubs/:id/reading/assign", middleware.RestrictToRoles("admin", "moderator"), readingHandler.AssignBookToClub)
+        protected.PATCH("/clubs/:id/reading/checkpoint", middleware.RestrictToRoles("admin", "moderator"), readingHandler.UpdateClubCheckpoint)
+        protected.POST("/clubs/:id/reading/complete", middleware.RestrictToRoles("admin", "moderator"), readingHandler.CompleteClubAssignment)
         protected.GET("/clubs/:id/reading", readingHandler.ListClubAssignments)
 	}
 }
