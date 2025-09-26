@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
-	"github.com/nevzattalhaozcan/forgotten/internal/models"
 	"github.com/nevzattalhaozcan/forgotten/internal/repository"
 	"github.com/nevzattalhaozcan/forgotten/pkg/utils"
 	"gorm.io/gorm"
@@ -189,28 +188,51 @@ func RequireClubMembershipWithRoles(clubRepo repository.ClubRepository, allowedR
 			}
 		}
 
-		RequireClubMembership(clubRepo)(c)
-		if c.IsAborted() {
-			return
-		}
-
-		membership, exists := c.Get("club_membership")
+		userID, exists := c.Get("user_id")
 		if !exists {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "membership check failed"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
 			c.Abort()
 			return
 		}
 
-		membershipData := membership.(*models.ClubMembership)
+		clubIDParam := c.Param("id")
+		if clubIDParam == "" {
+			clubIDParam = c.Param("club_id")
+		}
+
+		clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+			c.Abort()
+			return
+		}
+
+		membership, err := clubRepo.GetClubMemberByUserID(uint(clubID), userID.(uint))
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				c.JSON(http.StatusForbidden, gin.H{"error": "club membership required"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check membership"})
+			}
+			c.Abort()
+			return
+		}
+
+		if !membership.IsApproved {
+			c.JSON(http.StatusForbidden, gin.H{"error": "membership approval required"})
+			c.Abort()
+			return
+		}
 
 		for _, role := range allowedRoles {
-			if membershipData.Role == role {
+			if membership.Role == role {
+				c.Set("club_membership", membership)
 				c.Next()
 				return
 			}
 		}
 
-		c.JSON(http.StatusForbidden, gin.H{"error": "insufficient club permissions"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "insufficient club membership role"})
 		c.Abort()
 	}
 }
