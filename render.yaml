@@ -5,15 +5,10 @@ services:
     plan: free
     rootDir: .
     dockerfilePath: ./docker/Dockerfile
+    buildCommand: docker build -f ./docker/Dockerfile -t forgotten-api .
+    startCommand: ./app
     autoDeploy: true
     healthCheckPath: /health
-    buildFilter:
-      paths:
-      - docker/**
-      - "**/*.go"
-      - go.mod
-      - go.sum
-      - Makefile
     envVars:
       - key: SERVER_HOST
         value: 0.0.0.0
