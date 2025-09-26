@@ -226,3 +226,7 @@ func (s *EventService) refreshClubNextMeeting(clubID uint) error {
 
 	return s.clubRepo.Update(club)
 }
+
+func (s *EventService) ClubRepo() repository.ClubRepository {
+    return s.clubRepo
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
 	"github.com/nevzattalhaozcan/forgotten/internal/services"
+	"gorm.io/gorm"
 )
 
 type EventHandler struct {
@@ -207,16 +208,13 @@ func (h *EventHandler) RSVPToEvent(c *gin.Context) {
 		return
 	}
 
-	var req models.RSVPRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	event, err := h.eventService.GetEventByID(uint(eventID))
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "event not found"})
+        return
+    }
 
-	if err := h.validator.Struct(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+    clubID := event.ClubID
 
 	userIdRaw, ok := c.Get("user_id")
 	if !ok {
@@ -226,6 +224,31 @@ func (h *EventHandler) RSVPToEvent(c *gin.Context) {
 	userID, ok := userIdRaw.(uint)
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user_id in context"})
+		return
+	}
+
+	membership, err := h.eventService.ClubRepo().GetClubMemberByUserID(clubID, userID)
+    if err != nil {
+        if err == gorm.ErrRecordNotFound {
+            c.JSON(http.StatusForbidden, gin.H{"error": "club membership required"})
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check membership"})
+        }
+        return
+    }
+    if !membership.IsApproved {
+        c.JSON(http.StatusForbidden, gin.H{"error": "membership approval required"})
+        return
+    }
+
+	var req models.RSVPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
