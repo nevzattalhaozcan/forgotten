@@ -55,13 +55,13 @@ tools:
 
 # Database migrations
 migrate-up:
-	migrate -path internal/database/migrations -database "$(DATABASE_URL)" up
+	migrate -path internal/database/migrations -database "$(DB_URL)" up
 
 migrate-down:
-	migrate -path internal/database/migrations -database "$(DATABASE_URL)" down 1
+	migrate -path internal/database/migrations -database "$(DB_URL)" down 1
 
 migrate-force:
-	migrate -path internal/database/migrations -database "$(DATABASE_URL)" force $(VERSION)
+	migrate -path internal/database/migrations -database "$(DB_URL)" force $(VERSION)
 
 migrate-create:
 	migrate create -ext sql -dir internal/database/migrations -seq $(NAME)

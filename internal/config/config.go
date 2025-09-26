@@ -55,17 +55,17 @@ func Load() *Config {
 		log.Printf("no .env file found or error loading it: %v", err)
 	}
 
-	env := getEnv("ENVIRONMENT", "development")
+	env := getEnv("SERVER_ENVIRONMENT", "development")
     defaultAutoMigrate := env != "production"
 
 	return &Config{
 		Server: ServerConfig{
-			Port: getEnv("PORT", "8080"),
-			Host: getEnv("HOST", "localhost"),
-			Environment: getEnv("ENVIRONMENT", env),
+			Host: getEnv("SERVER_HOST", "localhost"),
+			Port: getEnv("SERVER_PORT", "8080"),
+			Environment: getEnv("SERVER_ENVIRONMENT", env),
 		},
 		Database: DatabaseConfig{
-			URL: getEnv("DATABASE_URL", "postgres://user:password@localhost:5432/dbname?sslmode=disable"),
+			URL: getEnv("DB_URL", "postgres://user:password@localhost:5432/dbname?sslmode=disable"),
 			MaxOpenConns: getEnvAsInt("DB_MAX_OPEN_CONNS", 25),
 			MaxIdleConns: getEnvAsInt("DB_MAX_IDLE_CONNS", 5),
 			AutoMigrate:    getEnvAsBool("DB_AUTO_MIGRATE", defaultAutoMigrate),

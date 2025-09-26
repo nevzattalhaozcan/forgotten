@@ -6,7 +6,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	os.Setenv("ENVIRONMENT", "development")
+	os.Setenv("SERVER_ENVIRONMENT", "development")
 	code := m.Run()
 	os.Exit(code)
 }

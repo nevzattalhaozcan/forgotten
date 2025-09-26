@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: forgotten-api
+    runtime: docker
+    plan: free
+    rootDir: .
+    dockerfilePath: ./docker/Dockerfile
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: SERVER_HOST
+        value: 0.0.0.0
+      - key: SERVER_PORT
+        value: ${PORT}
+      - key: SERVER_ENVIRONMENT
+        value: production
+      - key: DB_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false

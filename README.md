@@ -38,7 +38,7 @@ cd forgotten
 
 3) Configure environment
 - Copy `.env.example` to `.env` and adjust as needed:
-  - `DATABASE_URL` (e.g., postgres://user:password@localhost:5432/forgotten_db?sslmode=disable)
+  - `DB_URL` (e.g., postgres://user:password@localhost:5432/forgotten_db?sslmode=disable)
 - Seed data lives at `data/seed_users.json`.
 
 ### Run locally (without Docker)

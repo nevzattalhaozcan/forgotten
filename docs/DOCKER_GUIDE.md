@@ -20,7 +20,7 @@ docker login ghcr.io
 # 2. Download and run the application
 docker pull ghcr.io/nevzattalhaozcan/forgotten-app:latest
 docker run -d --name forgotten-postgres -e POSTGRES_DB=forgotten_db -e POSTGRES_USER=forgotten_user -e POSTGRES_PASSWORD=123456 -p 5432:5432 postgres:15-alpine
-docker run -d --name forgotten-app -p 8080:8080 --link forgotten-postgres -e DATABASE_URL=postgres://forgotten_user:123456@forgotten-postgres:5432/forgotten_db ghcr.io/nevzattalhaozcan/forgotten-app:latest
+docker run -d --name forgotten-app -p 8080:8080 --link forgotten-postgres -e DB_URL=postgres://forgotten_user:123456@forgotten-postgres:5432/forgotten_db ghcr.io/nevzattalhaozcan/forgotten-app:latest
 ```
 
 ### Option B: Using Repository
