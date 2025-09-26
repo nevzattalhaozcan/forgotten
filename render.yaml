@@ -3,7 +3,7 @@ services:
     name: forgotten-api
     runtime: go
     plan: free
-    buildCommand: go build -o app cmd/server/main.go
+    buildCommand: go build -tags netgo -ldflags "-s -w" -o app ./cmd/server
     startCommand: ./app
     autoDeploy: true
     healthCheckPath: /health
@@ -11,7 +11,7 @@ services:
       - key: SERVER_HOST
         value: 0.0.0.0
       - key: SERVER_PORT
-        value: ${PORT}
+        value: $PORT
       - key: SERVER_ENVIRONMENT
         value: production
       - key: DB_URL
