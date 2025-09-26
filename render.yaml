@@ -1,21 +1,12 @@
 services:
   - type: web
     name: forgotten-api
-    runtime: docker
+    runtime: go
     plan: free
-    rootDir: .
-    dockerfilePath: ./docker/Dockerfile
+    buildCommand: go build -o app cmd/server/main.go
+    startCommand: ./app
     autoDeploy: true
     healthCheckPath: /health
-    # Force Docker build - this overrides auto-detection
-    dockerCommand: ./app
-    buildFilter:
-      paths:
-      - docker/**
-      - "**/*.go"
-      - go.mod
-      - go.sum
-      - Makefile
     envVars:
       - key: SERVER_HOST
         value: 0.0.0.0
