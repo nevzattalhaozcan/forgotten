@@ -7,6 +7,13 @@ services:
     dockerfilePath: ./docker/Dockerfile
     autoDeploy: true
     healthCheckPath: /health
+    buildFilter:
+      paths:
+      - docker/**
+      - "**/*.go"
+      - go.mod
+      - go.sum
+      - Makefile
     envVars:
       - key: SERVER_HOST
         value: 0.0.0.0
