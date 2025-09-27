@@ -22,7 +22,7 @@ import (
 )
 
 type Server struct {
-	db *gorm.DB
+	db     *gorm.DB
 	config *config.Config
 	router *gin.Engine
 }
@@ -41,18 +41,18 @@ func (s *Server) setupRoutes() {
 	s.router.Use(gin.Recovery())
 
 	s.router.Use(cors.New(cors.Config{
-    AllowOrigins:     []string{"http://localhost:3000", "https://forgotten.onrender.com"},
-    AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-    AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-    ExposeHeaders:    []string{"Content-Length"},
-    AllowCredentials: true,
-    MaxAge:           12 * time.Hour,
-}))
+		AllowOrigins:     []string{"http://localhost:3000", "https://forgotten.onrender.com"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	s.router.Use(middleware.LoggingMiddleware())
 	s.router.Use(middleware.MetricsMiddleware())
 	_ = s.router.SetTrustedProxies(nil)
 
-	s.router.HEAD("/health", func(c *gin.Context) {	c.Status(http.StatusOK)	})
+	s.router.HEAD("/health", func(c *gin.Context) { c.Status(http.StatusOK) })
 
 	var userRepo repository.UserRepository = repository.NewUserRepository(s.db)
 	var clubRepo repository.ClubRepository = repository.NewClubRepository(s.db)
@@ -135,7 +135,7 @@ func (s *Server) setupRoutes() {
 		protected.POST("/clubs/:id/join", clubHandler.JoinClub)
 		protected.POST("/clubs/:id/leave", middleware.RequireClubMembership(clubRepo), clubHandler.LeaveClub)
 		protected.POST("/clubs/:id/ratings", middleware.RequireClubMembership(clubRepo), clubHandler.RateClub)
-		
+
 		protected.GET("/clubs/:id/members", clubHandler.ListClubMembers)
 		protected.PUT("/clubs/:id/members/:user_id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), clubHandler.UpdateClubMember)
 		protected.GET("/clubs/:id/members/:user_id", clubHandler.GetClubMember)
@@ -178,15 +178,15 @@ func (s *Server) setupRoutes() {
 
 		protected.POST("/users/:id/reading/sync", middleware.AuthorizeSelf(), readingHandler.SyncUserStats)
 		protected.POST("/users/:id/reading/start", middleware.AuthorizeSelf(), readingHandler.StartReading)
-        protected.PATCH("/users/:id/reading/:bookID/progress", middleware.AuthorizeSelf(), readingHandler.UpdateProgress)
-        protected.POST("/users/:id/reading/:bookID/complete", middleware.AuthorizeSelf(), readingHandler.CompleteReading)
-        protected.GET("/users/:id/reading", middleware.AuthorizeSelf(), readingHandler.ListUserProgress)
-        protected.GET("/users/:id/reading/history", readingHandler.UserReadingHistory)
+		protected.PATCH("/users/:id/reading/:bookID/progress", middleware.AuthorizeSelf(), readingHandler.UpdateProgress)
+		protected.POST("/users/:id/reading/:bookID/complete", middleware.AuthorizeSelf(), readingHandler.CompleteReading)
+		protected.GET("/users/:id/reading", middleware.AuthorizeSelf(), readingHandler.ListUserProgress)
+		protected.GET("/users/:id/reading/history", readingHandler.UserReadingHistory)
 
-        protected.POST("/clubs/:id/reading/assign", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.AssignBookToClub)
-        protected.PATCH("/clubs/:id/reading/checkpoint", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.UpdateClubCheckpoint)
-        protected.POST("/clubs/:id/reading/complete", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.CompleteClubAssignment)
-        protected.GET("/clubs/:id/reading", readingHandler.ListClubAssignments)
+		protected.POST("/clubs/:id/reading/assign", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.AssignBookToClub)
+		protected.PATCH("/clubs/:id/reading/checkpoint", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.UpdateClubCheckpoint)
+		protected.POST("/clubs/:id/reading/complete", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.CompleteClubAssignment)
+		protected.GET("/clubs/:id/reading", readingHandler.ListClubAssignments)
 	}
 }
 
