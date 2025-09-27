@@ -40,7 +40,14 @@ func NewServer(db *gorm.DB, config *config.Config) *Server {
 func (s *Server) setupRoutes() {
 	s.router.Use(gin.Recovery())
 
-	s.router.Use(cors.Default())
+	s.router.Use(cors.New(cors.Config{
+    AllowOrigins:     []string{"http://localhost:3000", "https://forgotten.onrender.com"},
+    AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+    AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+    ExposeHeaders:    []string{"Content-Length"},
+    AllowCredentials: true,
+    MaxAge:           12 * time.Hour,
+}))
 	s.router.Use(middleware.LoggingMiddleware())
 	s.router.Use(middleware.MetricsMiddleware())
 	_ = s.router.SetTrustedProxies(nil)
