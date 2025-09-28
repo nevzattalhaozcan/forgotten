@@ -13,6 +13,7 @@ type Event struct {
 	Location     string      `json:"location,omitempty"`
 	OnlineLink   string      `json:"online_link,omitempty"`
 	MaxAttendees *int        `json:"max_attendees,omitempty"`
+	IsPublic	 bool        `json:"is_public" gorm:"default:false"`
 	CreatedAt    time.Time   `json:"created_at" gorm:"autoCreateTime"`
 	Club         Club        `json:"club" gorm:"foreignKey:ClubID"`
 	RSVPs        []EventRSVP `json:"rsvps,omitempty"`
@@ -52,6 +53,7 @@ type CreateEventRequest struct {
 	Location     string    `json:"location,omitempty"`
 	OnlineLink   string    `json:"online_link,omitempty"`
 	MaxAttendees *int      `json:"max_attendees,omitempty"`
+	IsPublic	 bool      `json:"is_public" gorm:"default:false"`
 }
 
 type UpdateEventRequest struct {
@@ -63,6 +65,7 @@ type UpdateEventRequest struct {
 	Location     *string    `json:"location,omitempty"`
 	OnlineLink   *string    `json:"online_link,omitempty"`
 	MaxAttendees *int       `json:"max_attendees,omitempty"`
+	IsPublic	 *bool      `json:"is_public,omitempty"`
 }
 
 type RSVPRequest struct {
@@ -82,6 +85,7 @@ type EventResponse struct {
 	MaxAttendees *int        `json:"max_attendees,omitempty"`
 	CreatedAt    time.Time   `json:"created_at"`
 	RSVPs        []EventRSVP `json:"rsvps,omitempty"`
+	IsPublic     *bool       `json:"is_public,omitempty"`
 }
 
 func (e *Event) ToResponse() EventResponse {
@@ -98,5 +102,6 @@ func (e *Event) ToResponse() EventResponse {
 		MaxAttendees: e.MaxAttendees,
 		CreatedAt:    e.CreatedAt,
 		RSVPs:        e.RSVPs,
+		IsPublic:     &e.IsPublic,
 	}
 }

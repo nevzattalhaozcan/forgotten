@@ -45,6 +45,7 @@ type EventRepository interface {
     Delete(id uint) error
     RSVP(eventID uint, rsvp *models.EventRSVP) error
     GetEventAttendees(eventID uint) ([]models.EventRSVP, error)
+	GetPublicEvents() ([]models.Event, error)
 }
 
 type BookRepository interface {

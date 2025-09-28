@@ -78,3 +78,16 @@ func (r *eventRepository) GetEventAttendees(eventID uint) ([]models.EventRSVP, e
 	}
 	return rsvps, nil
 }
+
+func (r *eventRepository) GetPublicEvents() ([]models.Event, error) {
+	var events []models.Event
+	err := r.db.
+		Where("is_public = ?", true).
+		Preload("RSVPs").
+		Find(&events).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}

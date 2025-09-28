@@ -230,3 +230,18 @@ func (s *EventService) refreshClubNextMeeting(clubID uint) error {
 func (s *EventService) ClubRepo() repository.ClubRepository {
     return s.clubRepo
 }
+
+func (s *EventService) GetPublicEvents() ([]models.EventResponse, error) {
+	events, err := s.eventRepo.GetPublicEvents()
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []models.EventResponse
+	for _, event := range events {
+		response := event.ToResponse()
+		responses = append(responses, response)
+	}
+
+	return responses, nil
+}

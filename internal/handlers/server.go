@@ -134,6 +134,8 @@ func (s *Server) setupRoutes() {
 		api.GET("/users/:id/comments", commentHandler.ListCommentsByUserID)
 		api.GET("/comments/:id", commentHandler.GetCommentByID)
 		api.GET("/comments/:id/likes", commentHandler.ListLikesByCommentID)
+
+		api.GET("/events/public", eventHandler.GetPublicEvents)
 	}
 
 	protected := api.Group("/")
