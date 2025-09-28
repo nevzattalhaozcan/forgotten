@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -133,7 +136,7 @@ func RequireClubMembership(clubRepo repository.ClubRepository) gin.HandlerFunc {
 				}
 			}
 		}
-		
+
 		userID, exists := c.Get("user_id")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
@@ -141,16 +144,40 @@ func RequireClubMembership(clubRepo repository.ClubRepository) gin.HandlerFunc {
 			return
 		}
 
-		clubIDParam := c.Param("id")
-		if clubIDParam == "" {
-			clubIDParam = c.Param("club_id")
-		}
+		var clubID uint
+		var err error
 
-		clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
-			c.Abort()
-			return
+		clubIDParam := c.Param("id")
+
+		if clubIDParam == "" {
+			clubID64, parseErr := strconv.ParseUint(clubIDParam, 10, 32)
+			if parseErr != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+				c.Abort()
+				return
+			}
+			clubID = uint(clubID64)
+		} else {
+			bodyBytes, readErr := c.GetRawData()
+			if readErr != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "unable to read request body"})
+				c.Abort()
+				return
+			}
+
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+			var reqBody struct {
+				ClubID uint `json:"club_id"`
+			}
+
+			if json.Unmarshal(bodyBytes, &reqBody) != nil && reqBody.ClubID > 0 {
+				clubID = reqBody.ClubID
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "club_id is required in body"})
+				c.Abort()
+				return
+			}
 		}
 
 		membership, err := clubRepo.GetClubMemberByUserID(uint(clubID), userID.(uint))
