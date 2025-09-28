@@ -1,5 +1,225 @@
 basePath: /api/v1
 definitions:
+  models.AssignBookRequest:
+    properties:
+      book_id:
+        type: integer
+      checkpoint:
+        type: string
+      due_date:
+        type: string
+      start_date:
+        type: string
+      target_page:
+        type: integer
+    required:
+    - book_id
+    type: object
+  models.Book:
+    properties:
+      author:
+        type: string
+      cover_url:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      genre:
+        type: string
+      id:
+        type: integer
+      isbn:
+        type: string
+      pages:
+        type: integer
+      published_year:
+        type: integer
+      rating:
+        maximum: 5
+        minimum: 0
+        type: number
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.ClubAssignmentResponse:
+    properties:
+      book:
+        $ref: '#/definitions/models.Book'
+      checkpoint:
+        type: string
+      club_id:
+        type: integer
+      due_date:
+        type: string
+      id:
+        type: integer
+      start_date:
+        type: string
+      status:
+        type: string
+      target_page:
+        type: integer
+    type: object
+  models.CompleteReadingRequest:
+    properties:
+      note:
+        maxLength: 500
+        type: string
+    type: object
+  models.CreateBookRequest:
+    properties:
+      author:
+        maxLength: 255
+        minLength: 1
+        type: string
+      cover_url:
+        type: string
+      description:
+        minLength: 1
+        type: string
+      genre:
+        maxLength: 100
+        minLength: 1
+        type: string
+      isbn:
+        type: string
+      pages:
+        minimum: 1
+        type: integer
+      published_year:
+        maximum: 2100
+        minimum: 0
+        type: integer
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    required:
+    - title
+    type: object
+  models.CreateClubRequest:
+    properties:
+      cover_image_url:
+        type: string
+      description:
+        maxLength: 1000
+        type: string
+      genre:
+        maxLength: 100
+        type: string
+      is_private:
+        type: boolean
+      location:
+        maxLength: 255
+        type: string
+      max_members:
+        maximum: 1000
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    type: object
+  models.CreateCommentRequest:
+    properties:
+      content:
+        minLength: 1
+        type: string
+    required:
+    - content
+    type: object
+  models.CreateEventRequest:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      event_type:
+        allOf:
+        - $ref: '#/definitions/models.EventType'
+        enum:
+        - in_person
+        - online
+      is_public:
+        type: boolean
+      location:
+        type: string
+      max_attendees:
+        type: integer
+      online_link:
+        type: string
+      start_time:
+        type: string
+      title:
+        type: string
+    required:
+    - end_time
+    - event_type
+    - start_time
+    - title
+    type: object
+  models.CreatePostRequest:
+    properties:
+      club_id:
+        type: integer
+      content:
+        minLength: 1
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+      type:
+        enum:
+        - discussion
+        - announcement
+        - event
+        - poll
+        - review
+        - annotation
+        type: string
+    required:
+    - club_id
+    - content
+    - title
+    - type
+    type: object
+  models.CurrentBook:
+    properties:
+      author:
+        type: string
+      book_id:
+        type: integer
+      cover_url:
+        type: string
+      progress:
+        type: integer
+      title:
+        type: string
+    type: object
+  models.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  models.EventType:
+    enum:
+    - in_person
+    - online
+    type: string
+    x-enum-varnames:
+    - EventInPerson
+    - EventOnline
   models.LoginRequest:
     properties:
       email:
@@ -11,10 +231,132 @@ definitions:
     - email
     - password
     type: object
+  models.NextMeeting:
+    properties:
+      date:
+        type: string
+      location:
+        type: string
+      topic:
+        type: string
+    type: object
+  models.Post:
+    properties:
+      club_id:
+        type: integer
+      comments_count:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_pinned:
+        type: boolean
+      likes_count:
+        type: integer
+      title:
+        type: string
+      type:
+        default: discussion
+        enum:
+        - discussion
+        - announcement
+        - event
+        - poll
+        - review
+        - annotation
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+      views_count:
+        type: integer
+    required:
+    - type
+    type: object
+  models.PostLikeResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      user:
+        $ref: '#/definitions/models.UserResponse'
+    type: object
+  models.RSVPRequest:
+    properties:
+      status:
+        allOf:
+        - $ref: '#/definitions/models.RSVPStatus'
+        enum:
+        - going
+        - maybe
+        - not_going
+    required:
+    - status
+    type: object
+  models.RSVPStatus:
+    enum:
+    - going
+    - maybe
+    - not_going
+    type: string
+    x-enum-varnames:
+    - RSVPGoing
+    - RSVPMaybe
+    - RSVPNotGoing
+  models.RateClubRequest:
+    properties:
+      comment:
+        maxLength: 1000
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: number
+    required:
+    - rating
+    type: object
+  models.ReadingLog:
+    properties:
+      assignment_id:
+        type: integer
+      book_id:
+        type: integer
+      club_id:
+        type: integer
+      created_at:
+        type: string
+      from_page:
+        type: integer
+      id:
+        type: integer
+      minutes:
+        type: integer
+      note:
+        type: string
+      pages_delta:
+        type: integer
+      to_page:
+        type: integer
+      user_id:
+        type: integer
+    type: object
   models.RegisterRequest:
     properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
       email:
         type: string
+      favorite_genres:
+        items:
+          type: string
+        type: array
       first_name:
         maxLength: 50
         minLength: 2
@@ -23,8 +365,20 @@ definitions:
         maxLength: 50
         minLength: 2
         type: string
+      location:
+        type: string
       password:
         minLength: 6
+        type: string
+      reading_goal:
+        type: integer
+      role:
+        enum:
+        - admin
+        - user
+        - moderator
+        - support
+        - superuser
         type: string
       username:
         maxLength: 50
@@ -36,6 +390,290 @@ definitions:
     - last_name
     - password
     - username
+    type: object
+  models.StartReadingRequest:
+    properties:
+      book_id:
+        type: integer
+    required:
+    - book_id
+    type: object
+  models.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.UpdateBookRequest:
+    properties:
+      author:
+        maxLength: 255
+        minLength: 1
+        type: string
+      cover_url:
+        type: string
+      description:
+        minLength: 1
+        type: string
+      genre:
+        maxLength: 100
+        minLength: 1
+        type: string
+      isbn:
+        type: string
+      pages:
+        minimum: 1
+        type: integer
+      published_year:
+        maximum: 2100
+        minimum: 0
+        type: integer
+      rating:
+        maximum: 5
+        minimum: 0
+        type: number
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    type: object
+  models.UpdateClubCheckpointRequest:
+    properties:
+      checkpoint:
+        type: string
+      target_page:
+        type: integer
+    type: object
+  models.UpdateClubMembershipRequest:
+    properties:
+      is_approved:
+        type: boolean
+      role:
+        enum:
+        - member
+        - moderator
+        - club_admin
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.UpdateClubRequest:
+    properties:
+      cover_image_url:
+        type: string
+      current_book:
+        $ref: '#/definitions/models.CurrentBook'
+      description:
+        maxLength: 1000
+        type: string
+      genre:
+        maxLength: 100
+        type: string
+      is_private:
+        type: boolean
+      location:
+        maxLength: 255
+        type: string
+      max_members:
+        maximum: 1000
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      next_meeting:
+        $ref: '#/definitions/models.NextMeeting'
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  models.UpdateCommentRequest:
+    properties:
+      content:
+        minLength: 1
+        type: string
+    type: object
+  models.UpdateEventRequest:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      event_type:
+        allOf:
+        - $ref: '#/definitions/models.EventType'
+        enum:
+        - in_person
+        - online
+      is_public:
+        type: boolean
+      location:
+        type: string
+      max_attendees:
+        type: integer
+      online_link:
+        type: string
+      start_time:
+        type: string
+      title:
+        type: string
+    type: object
+  models.UpdatePostRequest:
+    properties:
+      club_id:
+        type: integer
+      content:
+        minLength: 1
+        type: string
+      is_pinned:
+        type: boolean
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+      type:
+        enum:
+        - discussion
+        - announcement
+        - event
+        - poll
+        - review
+        - annotation
+        type: string
+    type: object
+  models.UpdateReadingProgressRequest:
+    properties:
+      current_page:
+        minimum: 0
+        type: integer
+      minutes:
+        minimum: 0
+        type: integer
+      note:
+        maxLength: 500
+        type: string
+      pages_delta:
+        type: integer
+      percent:
+        maximum: 100
+        minimum: 0
+        type: number
+    type: object
+  models.UpdateUserRequest:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      email:
+        type: string
+      favorite_genres:
+        items:
+          type: string
+        type: array
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      is_active:
+        type: boolean
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      location:
+        maxLength: 255
+        type: string
+      password:
+        minLength: 6
+        type: string
+      reading_goal:
+        minimum: 0
+        type: integer
+      role:
+        enum:
+        - admin
+        - user
+        - moderator
+        - support
+        - superuser
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    type: object
+  models.UserBookProgressResponse:
+    properties:
+      book_id:
+        type: integer
+      current_page:
+        type: integer
+      finished_at:
+        type: string
+      percent:
+        type: number
+      started_at:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.UserReadingHistoryItem:
+    properties:
+      book:
+        $ref: '#/definitions/models.Book'
+      finished_at:
+        type: string
+      logs:
+        items:
+          $ref: '#/definitions/models.ReadingLog'
+        type: array
+    type: object
+  models.UserResponse:
+    properties:
+      avatar_url:
+        type: string
+      badges:
+        items:
+          type: string
+        type: array
+      bio:
+        type: string
+      books_read:
+        type: integer
+      created_at:
+        type: string
+      email:
+        type: string
+      favorite_genres:
+        items:
+          type: string
+        type: array
+      first_name:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      is_online:
+        type: boolean
+      last_name:
+        type: string
+      last_seen:
+        type: string
+      location:
+        type: string
+      reading_goal:
+        type: integer
+      role:
+        type: string
+      username:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -104,6 +742,873 @@ paths:
       summary: Register a new user
       tags:
       - Authentication
+  /api/v1/books:
+    get:
+      description: Retrieve a list of all books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of books
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all books
+      tags:
+      - Books
+    post:
+      consumes:
+      - application/json
+      description: Add a new book to the collection
+      parameters:
+      - description: Book data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Book created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new book
+      tags:
+      - Books
+  /api/v1/books/{id}:
+    delete:
+      description: Delete a book by ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Book deleted successfully
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Book not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a book
+      tags:
+      - Books
+    get:
+      description: Retrieve a book's details by its ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Book details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Book not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a book by ID
+      tags:
+      - Books
+    put:
+      consumes:
+      - application/json
+      description: Update book information
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update book data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Book updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Book not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a book
+      tags:
+      - Books
+  /api/v1/clubs:
+    get:
+      description: Retrieve a list of all clubs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Clubs retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all clubs
+      tags:
+      - Clubs
+    post:
+      consumes:
+      - application/json
+      description: Create a new book club
+      parameters:
+      - description: Club creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateClubRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Club created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new club
+      tags:
+      - Clubs
+  /api/v1/clubs/{id}:
+    delete:
+      description: Delete a club by its ID
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: Club deleted successfully
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete club
+      tags:
+      - Clubs
+    get:
+      description: Retrieve a club by its ID
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Club retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Club not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get club by ID
+      tags:
+      - Clubs
+    put:
+      consumes:
+      - application/json
+      description: Update club information
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Club update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateClubRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Club updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Club not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update club
+      tags:
+      - Clubs
+  /api/v1/clubs/{id}/events:
+    get:
+      description: Retrieve all events for a specific club
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of events
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List events for a club
+      tags:
+      - Events
+    post:
+      consumes:
+      - application/json
+      description: Create a new event for a specific club
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Event data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Event created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new event
+      tags:
+      - Events
+  /api/v1/clubs/{id}/join:
+    post:
+      description: Join a club by its ID
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Joined club successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Join a club
+      tags:
+      - Clubs
+  /api/v1/clubs/{id}/leave:
+    post:
+      description: Leave a club by its ID
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Left club successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Leave a club
+      tags:
+      - Clubs
+  /api/v1/clubs/{id}/members:
+    get:
+      description: List all members of a club by its ID
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of club members
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List club members
+      tags:
+      - Clubs
+  /api/v1/clubs/{id}/members/{user_id}:
+    get:
+      description: Retrieve a club member's information by user ID
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Member retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Member not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get club member by user ID
+      tags:
+      - Clubs
+    put:
+      consumes:
+      - application/json
+      description: Update a club member's information
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Member update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateClubMembershipRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Member updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Club not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update club member
+      tags:
+      - Clubs
+  /api/v1/clubs/{id}/rate:
+    post:
+      consumes:
+      - application/json
+      description: Rate a club by its ID
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Club rating data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RateClubRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Club rated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Rate a club
+      tags:
+      - Clubs
+  /api/v1/clubs/{id}/ratings:
+    get:
+      description: List all ratings for a club by its ID
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 20
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of club ratings
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List club ratings
+      tags:
+      - Clubs
+  /api/v1/events/{id}:
+    delete:
+      description: Delete an event by its ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete an event
+      tags:
+      - Events
+    get:
+      description: Retrieve details of a specific event by its ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get event details
+      tags:
+      - Events
+    put:
+      consumes:
+      - application/json
+      description: Update event information
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update event data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update an event
+      tags:
+      - Events
+  /api/v1/events/{id}/attendees:
+    get:
+      description: Retrieve a list of attendees for a specific event
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of attendees
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get event attendees
+      tags:
+      - Events
+  /api/v1/events/{id}/rsvp:
+    post:
+      consumes:
+      - application/json
+      description: RSVP to an event by its ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: RSVP data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RSVPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: RSVP successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: RSVP to an event
+      tags:
+      - Events
+  /api/v1/events/public:
+    get:
+      description: Retrieve a list of all public events
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of public events
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get public events
+      tags:
+      - Events
   /api/v1/user/profile:
     get:
       description: Retrieve the profile of the authenticated user
@@ -126,7 +1631,63 @@ paths:
       summary: Get user profile
       tags:
       - Users
+  /api/v1/users:
+    get:
+      description: Retrieve a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Users retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all users
+      tags:
+      - Users
   /api/v1/users/{id}:
+    delete:
+      description: Delete a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User deleted successfully
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete user
+      tags:
+      - Users
     get:
       description: Retrieve user information by user ID
       parameters:
@@ -158,6 +1719,1154 @@ paths:
       summary: Get user by ID
       tags:
       - Users
+    put:
+      consumes:
+      - application/json
+      description: Update user information
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update user data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Update user
+      tags:
+      - Users
+  /api/v1/users/my-clubs:
+    get:
+      description: Retrieve a list of clubs the authenticated user is a member of
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user's clubs
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user's clubs
+      tags:
+      - Users
+  /clubs/{id}/posts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all posts associated with a specific club
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Posts retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Post'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List posts by club ID
+      tags:
+      - Posts
+  /clubs/{id}/reading:
+    get:
+      description: List all book assignments for a club.
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ClubAssignmentResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List Club Book Assignments
+      tags:
+      - Reading
+  /clubs/{id}/reading/assign:
+    post:
+      consumes:
+      - application/json
+      description: Assign a book to a club for reading.
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Assign Book Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AssignBookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ClubAssignmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Assign Book to Club
+      tags:
+      - Reading
+  /clubs/{id}/reading/checkpoint:
+    patch:
+      consumes:
+      - application/json
+      description: Update the reading checkpoint for a club's current book assignment.
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Club Checkpoint Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateClubCheckpointRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ClubAssignmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update Club Reading Checkpoint
+      tags:
+      - Reading
+  /clubs/{id}/reading/complete:
+    post:
+      description: Mark the current book assignment for a club as completed.
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ClubAssignmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Complete Club Book Assignment
+      tags:
+      - Reading
+  /comments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a comment by its ID
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a comment
+      tags:
+      - Comments
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a comment by its ID
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a comment by ID
+      tags:
+      - Comments
+    put:
+      consumes:
+      - application/json
+      description: Update an existing comment by its ID
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated comment data
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a comment
+      tags:
+      - Comments
+  /comments/{id}/like:
+    post:
+      consumes:
+      - application/json
+      description: Like a comment by its ID
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Like a comment
+      tags:
+      - Comments
+  /comments/{id}/likes:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all likes for a specific comment
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List likes by comment ID
+      tags:
+      - Comments
+  /comments/{id}/unlike:
+    post:
+      consumes:
+      - application/json
+      description: Unlike a comment by its ID
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Unlike a comment
+      tags:
+      - Comments
+  /posts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all posts in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Posts retrieved successfully
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List all posts
+      tags:
+      - Posts
+    post:
+      consumes:
+      - application/json
+      description: Create a new post associated with the authenticated user
+      parameters:
+      - description: Post data
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Post created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new post
+      tags:
+      - Posts
+  /posts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Post deleted successfully
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Post not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a post
+      tags:
+      - Posts
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Post not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get a post by ID
+      tags:
+      - Posts
+    put:
+      consumes:
+      - application/json
+      description: Update a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated post data
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post updated successfully
+          schema:
+            $ref: '#/definitions/models.Post'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Post not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update a post
+      tags:
+      - Posts
+  /posts/{id}/comments:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all comments for a specific post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List comments by post ID
+      tags:
+      - Comments
+    post:
+      consumes:
+      - application/json
+      description: Create a new comment for a specific post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Comment data
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new comment
+      tags:
+      - Comments
+  /posts/{id}/like:
+    post:
+      consumes:
+      - application/json
+      description: Like a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post liked successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Post not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Like a post
+      tags:
+      - Posts
+  /posts/{id}/likes:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all likes associated with a specific post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Likes retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.PostLikeResponse'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Post not found or no likes found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List likes by post ID
+      tags:
+      - Posts
+  /posts/{id}/unlike:
+    post:
+      consumes:
+      - application/json
+      description: Unlike a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post unliked successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Post not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Unlike a post
+      tags:
+      - Posts
+  /posts/popular:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve popular posts from public clubs based on number of likes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Popular public posts retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Post'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List popular public posts
+      tags:
+      - Posts
+  /posts/public:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all posts from public clubs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Public posts retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Post'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List public posts
+      tags:
+      - Posts
+  /users/{id}/comments:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all comments made by a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List comments by user ID
+      tags:
+      - Comments
+  /users/{id}/posts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all posts created by a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Posts retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Post'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List posts by user ID
+      tags:
+      - Posts
+  /users/{id}/reading:
+    get:
+      description: List all reading progress entries for a user.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserBookProgressResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List User Reading Progress
+      tags:
+      - Reading
+  /users/{id}/reading/history:
+    get:
+      description: Retrieve the reading history of a user.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserReadingHistoryItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get User Reading History
+      tags:
+      - Reading
+  /users/{id}/reading/sync:
+    post:
+      description: Synchronize the reading statistics for a user.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Sync User Reading Stats
+      tags:
+      - Reading
+  /users/{id}/readings:
+    post:
+      consumes:
+      - application/json
+      description: Start reading a book by providing the book ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Start Reading Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StartReadingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.UserBookProgressResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Start Reading a Book
+      tags:
+      - Reading
+  /users/{id}/readings/{bookID}:
+    put:
+      consumes:
+      - application/json
+      description: Update the reading progress of a book.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
+      - description: Update Reading Progress Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateReadingProgressRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserBookProgressResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update Reading Progress
+      tags:
+      - Reading
+  /users/{id}/readings/{bookID}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Mark a book as completed and optionally add a note.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
+      - description: Complete Reading Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CompleteReadingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserBookProgressResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Complete Reading a Book
+      tags:
+      - Reading
 securityDefinitions:
   Bearer:
     description: Type "Bearer" followed by a space and JWT token.

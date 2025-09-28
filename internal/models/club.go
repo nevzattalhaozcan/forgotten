@@ -45,14 +45,16 @@ type Club struct {
 	MembersCount  int              `json:"members_count" gorm:"default:0"`
 	Rating        float32          `json:"rating" gorm:"default:0"`
 	RatingsCount  int              `json:"ratings_count" gorm:"default:0"`
-	Tags          pq.StringArray   `json:"tags" gorm:"type:text[]"`
+	Tags          pq.StringArray   `json:"tags" gorm:"type:text[]" swaggertype:"array,string"`
 	OwnerID       *uint            `json:"owner_id"`
-	CurrentBook   json.RawMessage  `json:"current_book" gorm:"type:jsonb"`
-	NextMeeting   json.RawMessage  `json:"next_meeting" gorm:"type:jsonb"`
-	Owner         User             `json:"owner" gorm:"foreignKey:OwnerID;constraint:OnDelete:SET NULL"`
-	Moderators    []User           `json:"moderators" gorm:"many2many:club_moderators;"`
-	Members       []ClubMembership `json:"members" gorm:"foreignKey:ClubID;constraint:OnDelete:CASCADE"`
-	Posts         []Post           `json:"posts,omitempty" gorm:"foreignKey:ClubID"`
+
+	CurrentBook   json.RawMessage  `json:"current_book" gorm:"type:jsonb" swaggerignore:"true"`
+	NextMeeting   json.RawMessage  `json:"next_meeting" gorm:"type:jsonb" swaggerignore:"true"`
+
+	Owner         User             `json:"owner" gorm:"foreignKey:OwnerID;constraint:OnDelete:SET NULL" swaggerignore:"true"`
+	Moderators    []User           `json:"moderators" gorm:"many2many:club_moderators;" swaggerignore:"true"`
+	Members       []ClubMembership `json:"members" gorm:"foreignKey:ClubID;constraint:OnDelete:CASCADE" swaggerignore:"true"`
+	Posts         []Post           `json:"posts,omitempty" gorm:"foreignKey:ClubID" swaggerignore:"true"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
@@ -82,7 +84,7 @@ type CreateClubRequest struct {
 	CoverImageURL *string        `json:"cover_image_url" validate:"omitempty,url"`
 	IsPrivate     bool           `json:"is_private"`
 	MaxMembers    int            `json:"max_members" validate:"gte=1,lte=1000"`
-	Tags          pq.StringArray `json:"tags" validate:"dive,max=50"`
+	Tags          pq.StringArray `json:"tags" validate:"dive,max=50" swaggertype:"array,string"`
 }
 
 type UpdateClubRequest struct {
@@ -93,7 +95,7 @@ type UpdateClubRequest struct {
 	CoverImageURL *string         `json:"cover_image_url" validate:"omitempty,url"`
 	IsPrivate     *bool           `json:"is_private"`
 	MaxMembers    *int            `json:"max_members" validate:"omitempty,gte=1,lte=1000"`
-	Tags          *pq.StringArray `json:"tags" validate:"omitempty,dive,max=50"`
+	Tags          *pq.StringArray `json:"tags" validate:"omitempty,dive,max=50" swaggertype:"array,string"`
 	CurrentBook   *CurrentBook    `json:"current_book"`
 	NextMeeting   *NextMeeting    `json:"next_meeting"`
 }

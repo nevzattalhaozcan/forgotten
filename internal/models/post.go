@@ -10,30 +10,30 @@ type PostLike struct {
 	ID     uint `json:"id" gorm:"primaryKey"`
 	UserID uint `json:"user_id" gorm:"uniqueIndex:idx_user_post_like"`
 	PostID uint `json:"post_id" gorm:"uniqueIndex:idx_user_post_like"`
-	User   User `json:"user" gorm:"foreignKey:UserID"`
-	Post   Post `json:"post" gorm:"foreignKey:PostID"`
+	User   User `json:"user" gorm:"foreignKey:UserID" swaggerignore:"true"`
+	Post   Post `json:"post" gorm:"foreignKey:PostID" swaggerignore:"true"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Post struct {
-	ID            uint       `json:"id" gorm:"primaryKey"`
-	Title         string     `json:"title" gorm:"size:255;not null"`
-	Content       string     `json:"content" gorm:"type:text;not null"`
-	Type          string     `json:"type" gorm:"not null" validate:"required,oneof=discussion announcement event poll review annotation" default:"discussion"`
-	IsPinned      bool       `json:"is_pinned" gorm:"default:false"`
-	LikesCount    int        `json:"likes_count" gorm:"default:0"`
-	CommentsCount int        `json:"comments_count" gorm:"default:0"`
-	ViewsCount    int        `json:"views_count" gorm:"default:0"`
-	UserID        uint       `json:"user_id"`
-	ClubID        uint       `json:"club_id"`
+	ID            uint   `json:"id" gorm:"primaryKey"`
+	Title         string `json:"title" gorm:"size:255;not null"`
+	Content       string `json:"content" gorm:"type:text;not null"`
+	Type          string `json:"type" gorm:"not null" validate:"required,oneof=discussion announcement event poll review annotation" default:"discussion"`
+	IsPinned      bool   `json:"is_pinned" gorm:"default:false"`
+	LikesCount    int    `json:"likes_count" gorm:"default:0"`
+	CommentsCount int    `json:"comments_count" gorm:"default:0"`
+	ViewsCount    int    `json:"views_count" gorm:"default:0"`
+	UserID        uint   `json:"user_id"`
+	ClubID        uint   `json:"club_id"`
 
-	Club          Club       `json:"club" gorm:"foreignKey:ClubID"`
-	User          User       `json:"user" gorm:"foreignKey:UserID"`
-	Comments      []Comment  `json:"comments,omitempty" gorm:"foreignKey:PostID"`
-	Likes         []PostLike `json:"likes,omitempty" gorm:"foreignKey:PostID"`
-	
+	Club     Club       `json:"club" gorm:"foreignKey:ClubID" swaggerignore:"true"`
+	User     User       `json:"user" gorm:"foreignKey:UserID" swaggerignore:"true"`
+	Comments []Comment  `json:"comments,omitempty" gorm:"foreignKey:PostID" swaggerignore:"true"`
+	Likes    []PostLike `json:"likes,omitempty" gorm:"foreignKey:PostID" swaggerignore:"true"`
+
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
@@ -65,26 +65,26 @@ type PostResponse struct {
 	ViewsCount    int        `json:"views_count"`
 	UserID        uint       `json:"user_id"`
 	ClubID        uint       `json:"club_id"`
-	User          User       `json:"user"`
-	Comments      []Comment  `json:"comments,omitempty"`
-	Likes         []PostLike `json:"likes,omitempty"`
+	User          User       `json:"user" swaggerignore:"true"`
+	Comments      []Comment  `json:"comments,omitempty" swaggerignore:"true"`
+	Likes         []PostLike `json:"likes,omitempty" swaggerignore:"true"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type PostLikeResponse struct {
-    ID        uint         `json:"id"`
-    User      UserResponse `json:"user"`
-    CreatedAt time.Time    `json:"created_at"`
+	ID        uint         `json:"id"`
+	User      UserResponse `json:"user"`
+	CreatedAt time.Time    `json:"created_at"`
 }
 
 func (pl PostLike) ToResponse() PostLikeResponse {
-    return PostLikeResponse{
-        ID:        pl.ID,
-        User:      pl.User.ToResponse(),
-        CreatedAt: pl.CreatedAt,
-    }
+	return PostLikeResponse{
+		ID:        pl.ID,
+		User:      pl.User.ToResponse(),
+		CreatedAt: pl.CreatedAt,
+	}
 }
 
 func (p *Post) ToResponse() PostResponse {

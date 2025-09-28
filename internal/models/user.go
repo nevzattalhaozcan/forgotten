@@ -19,20 +19,20 @@ type User struct {
 
 	AvatarURL      *string        `json:"avatar_url" gorm:"type:text"`
 	Location       *string        `json:"location" gorm:"size:255"`
-	FavoriteGenres pq.StringArray `json:"favorite_genres" gorm:"type:text[]"`
+	FavoriteGenres pq.StringArray `json:"favorite_genres" gorm:"type:text[]" swaggertype:"array,string"`
 	Bio            *string        `json:"bio" gorm:"type:text"`
 	ReadingGoal    int            `json:"reading_goal" gorm:"default:0"`
 	BooksRead      int            `json:"books_read" gorm:"default:0"`
-	Badges         pq.StringArray `json:"badges" gorm:"type:text[]"`
+	Badges         pq.StringArray `json:"badges" gorm:"type:text[]" swaggertype:"array,string"`
 	IsOnline       bool           `json:"is_online" gorm:"default:false"`
 	LastSeen       *time.Time     `json:"last_seen"`
 
-	OwnedClubs      []Club           `json:"owned_clubs,omitempty" gorm:"foreignKey:OwnerID"`
-	ClubMemberships []ClubMembership `json:"club_memberships,omitempty" gorm:"foreignKey:UserID"`
-	Posts           []Post           `json:"posts,omitempty" gorm:"foreignKey:UserID"`
-	Comments        []Comment        `json:"comments,omitempty" gorm:"foreignKey:UserID"`
-	PostLikes       []PostLike       `json:"post_likes,omitempty" gorm:"foreignKey:UserID"`
-	CommentLikes    []CommentLike    `json:"comment_likes,omitempty" gorm:"foreignKey:UserID"`
+	OwnedClubs      []Club           `json:"owned_clubs,omitempty" gorm:"foreignKey:OwnerID" swaggerignore:"true"`
+	ClubMemberships []ClubMembership `json:"club_memberships,omitempty" gorm:"foreignKey:UserID" swaggerignore:"true"`
+	Posts           []Post           `json:"posts,omitempty" gorm:"foreignKey:UserID" swaggerignore:"true"`
+	Comments        []Comment        `json:"comments,omitempty" gorm:"foreignKey:UserID" swaggerignore:"true"`
+	PostLikes       []PostLike       `json:"post_likes,omitempty" gorm:"foreignKey:UserID" swaggerignore:"true"`
+	CommentLikes    []CommentLike    `json:"comment_likes,omitempty" gorm:"foreignKey:UserID" swaggerignore:"true"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
@@ -50,20 +50,20 @@ type UserResponse struct {
 
 	AvatarURL      *string        `json:"avatar_url"`
 	Location       *string        `json:"location"`
-	FavoriteGenres pq.StringArray `json:"favorite_genres"`
+	FavoriteGenres pq.StringArray `json:"favorite_genres" swaggertype:"array,string"`
 	Bio            *string        `json:"bio"`
 	ReadingGoal    *int           `json:"reading_goal"`
 	BooksRead      int            `json:"books_read"`
-	Badges         pq.StringArray `json:"badges"`
+	Badges         pq.StringArray `json:"badges" swaggertype:"array,string"`
 	IsOnline       bool           `json:"is_online"`
 	LastSeen       *time.Time     `json:"last_seen"`
 
-	OwnedClubs      []Club           `json:"owned_clubs,omitempty"`
-	ClubMemberships []ClubMembership `json:"club_memberships,omitempty"`
-	Posts           []Post           `json:"posts,omitempty"`
-	Comments        []Comment        `json:"comments,omitempty"`
-	PostLikes       []PostLike       `json:"post_likes,omitempty"`
-	CommentLikes    []CommentLike    `json:"comment_likes,omitempty"`
+	OwnedClubs      []Club           `json:"owned_clubs,omitempty" swaggerignore:"true"`
+	ClubMemberships []ClubMembership `json:"club_memberships,omitempty" swaggerignore:"true"`
+	Posts           []Post           `json:"posts,omitempty" swaggerignore:"true"`
+	Comments        []Comment        `json:"comments,omitempty" swaggerignore:"true"`
+	PostLikes       []PostLike       `json:"post_likes,omitempty" swaggerignore:"true"`
+	CommentLikes    []CommentLike    `json:"comment_likes,omitempty" swaggerignore:"true"`
 
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -130,4 +130,14 @@ func (u *User) ToResponse() UserResponse {
 		CommentLikes:    u.CommentLikes,
 		CreatedAt:       u.CreatedAt,
 	}
+}
+
+// ErrorResponse represents a standard error response
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+// SuccessResponse represents a standard success response
+type SuccessResponse struct {
+	Message string `json:"message"`
 }

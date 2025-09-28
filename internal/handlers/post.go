@@ -29,10 +29,10 @@ func NewPostHandler(postService *services.PostService) *PostHandler {
 // @Accept json
 // @Produce json
 // @Param post body models.CreatePostRequest true "Post data"
-// @Success 201 {object} models.Post "Post created successfully"
-// @Failure 400 {object} gin.H "Bad request"
-// @Failure 401 {object} gin.H "Unauthorized"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Success 201 {object} map[string]interface{} "Post created successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts [post]
 func (h *PostHandler) CreatePost(c *gin.Context) {
 	useridRaw, exists := c.Get("user_id")
@@ -76,10 +76,10 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Post ID"
-// @Success 200 {object} models.Post "Post retrieved successfully"
-// @Failure 400 {object} gin.H "Bad request"
-// @Failure 404 {object} gin.H "Post not found"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Success 200 {object} map[string]interface{} "Post retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 404 {object} map[string]interface{} "Post not found"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts/{id} [get]
 func (h *PostHandler) GetPostByID(c *gin.Context) {
 	idParam := c.Param("id")
@@ -110,9 +110,9 @@ func (h *PostHandler) GetPostByID(c *gin.Context) {
 // @Param id path int true "Post ID"
 // @Param post body models.UpdatePostRequest true "Updated post data"
 // @Success 200 {object} models.Post "Post updated successfully"
-// @Failure 400 {object} gin.H "Bad request"
-// @Failure 404 {object} gin.H "Post not found"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 404 {object} map[string]interface{} "Post not found"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts/{id} [put]
 func (h *PostHandler) UpdatePost(c *gin.Context) {
 	idParam := c.Param("id")
@@ -156,9 +156,9 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Post ID"
 // @Success 204 {object} nil "Post deleted successfully"
-// @Failure 400 {object} gin.H "Bad request"
-// @Failure 404 {object} gin.H "Post not found"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 404 {object} map[string]interface{} "Post not found"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts/{id} [delete]
 func (h *PostHandler) DeletePost(c *gin.Context) {
 	idParam := c.Param("id")
@@ -187,8 +187,8 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 // @Produce json
 // @Param id path int true "User ID"
 // @Success 200 {array} models.Post "Posts retrieved successfully"
-// @Failure 400 {object} gin.H "Bad request"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /users/{id}/posts [get]
 func (h *PostHandler) ListPostsByUserID(c *gin.Context) {
 	userIDParam := c.Param("id")
@@ -214,8 +214,8 @@ func (h *PostHandler) ListPostsByUserID(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Club ID"
 // @Success 200 {array} models.Post "Posts retrieved successfully"
-// @Failure 400 {object} gin.H "Bad request"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /clubs/{id}/posts [get]
 func (h *PostHandler) ListPostsByClubID(c *gin.Context) {
 	clubIDParam := c.Param("id")
@@ -239,8 +239,8 @@ func (h *PostHandler) ListPostsByClubID(c *gin.Context) {
 // @Tags Posts
 // @Accept json
 // @Produce json
-// @Success 200 {array} models.Post "Posts retrieved successfully"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Success 200 {array} map[string]interface{} "Posts retrieved successfully"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts [get]
 func (h *PostHandler) ListAllPosts(c *gin.Context) {
 	posts, err := h.postService.ListAllPosts()
@@ -258,7 +258,7 @@ func (h *PostHandler) ListAllPosts(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {array} models.Post "Public posts retrieved successfully"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts/public [get]
 func (h *PostHandler) ListPublicPosts(c *gin.Context) {
 	posts, err := h.postService.ListPublicPosts()
@@ -276,7 +276,7 @@ func (h *PostHandler) ListPublicPosts(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {array} models.Post "Popular public posts retrieved successfully"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts/popular [get]
 func (h *PostHandler) ListPopularPublicPosts(c *gin.Context) {
 	posts, err := h.postService.ListPopularPublicPosts(20)
@@ -294,11 +294,11 @@ func (h *PostHandler) ListPopularPublicPosts(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Post ID"
-// @Success 200 {object} gin.H "Post liked successfully"
-// @Failure 400 {object} gin.H "Bad request"
-// @Failure 401 {object} gin.H "Unauthorized"
-// @Failure 404 {object} gin.H "Post not found"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Success 200 {object} map[string]interface{} "Post liked successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Post not found"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts/{id}/like [post]
 func (h *PostHandler) LikePost(c *gin.Context) {
 	postIdParam := c.Param("id")
@@ -341,11 +341,11 @@ func (h *PostHandler) LikePost(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Post ID"
-// @Success 200 {object} gin.H "Post unliked successfully"
-// @Failure 400 {object} gin.H "Bad request"
-// @Failure 401 {object} gin.H "Unauthorized"
-// @Failure 404 {object} gin.H "Post not found"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Success 200 {object} map[string]interface{} "Post unliked successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Post not found"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts/{id}/unlike [post]
 func (h *PostHandler) UnlikePost(c *gin.Context) {
 	postIdParam := c.Param("id")
@@ -388,10 +388,10 @@ func (h *PostHandler) UnlikePost(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Post ID"
-// @Success 200 {array} models.Like "Likes retrieved successfully"
-// @Failure 400 {object} gin.H "Bad request"
-// @Failure 404 {object} gin.H "Post not found or no likes found"
-// @Failure 500 {object} gin.H "Internal server error"
+// @Success 200 {array} models.PostLikeResponse "Likes retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 404 {object} map[string]interface{} "Post not found or no likes found"
+// @Failure 500 {object} models.ErrorResponse
 // @Router /posts/{id}/likes [get]
 func (h *PostHandler) ListLikesByPostID(c *gin.Context) {
 	postIdParam := c.Param("id")

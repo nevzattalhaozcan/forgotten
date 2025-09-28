@@ -10,8 +10,8 @@ type CommentLike struct {
 	ID        uint    `json:"id" gorm:"primaryKey"`
 	UserID    uint    `json:"user_id"`
 	CommentID uint    `json:"comment_id"`
-	User      User    `json:"user" gorm:"foreignKey:UserID"`
-	Comment   Comment `json:"comment" gorm:"foreignKey:CommentID"`
+	User      User    `json:"user" gorm:"foreignKey:UserID" swaggerignore:"true"`
+	Comment   Comment `json:"comment" gorm:"foreignKey:CommentID" swaggerignore:"true"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -23,8 +23,8 @@ type Comment struct {
 	UserID     uint          `json:"user_id" gorm:"not null;foreignKey:UserID"`
 	Content    string        `json:"content" gorm:"type:text;not null"`
 	LikesCount int           `json:"likes_count" gorm:"default:0"`
-	User       User          `json:"user" gorm:"foreignKey:UserID"`
-	Likes      []CommentLike `json:"likes,omitempty" gorm:"foreignKey:CommentID"`
+	User       User          `json:"user" gorm:"foreignKey:UserID" swaggerignore:"true"`
+	Likes      []CommentLike `json:"likes,omitempty" gorm:"foreignKey:CommentID" swaggerignore:"true"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
@@ -45,25 +45,25 @@ type CommentResponse struct {
 	UserID     uint          `json:"user_id"`
 	Content    string        `json:"content"`
 	LikesCount int           `json:"likes_count"`
-	User       User          `json:"user"`
-	Likes      []CommentLike `json:"likes,omitempty"`
+	User       User          `json:"user" swaggerignore:"true"`
+	Likes      []CommentLike `json:"likes,omitempty" swaggerignore:"true"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type CommentLikeResponse struct {
-    ID        uint         `json:"id"`
-    User      UserResponse `json:"user"`
-    CreatedAt time.Time    `json:"created_at"`
+	ID        uint         `json:"id"`
+	User      UserResponse `json:"user"`
+	CreatedAt time.Time    `json:"created_at"`
 }
 
 func (cl CommentLike) ToResponse() CommentLikeResponse {
-    return CommentLikeResponse{
-        ID:        cl.ID,
-        User:      cl.User.ToResponse(),
-        CreatedAt: cl.CreatedAt,
-    }
+	return CommentLikeResponse{
+		ID:        cl.ID,
+		User:      cl.User.ToResponse(),
+		CreatedAt: cl.CreatedAt,
+	}
 }
 
 func (c *Comment) ToResponse() CommentResponse {
