@@ -252,6 +252,14 @@ func (h *PostHandler) ListAllPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
+// @Summary List public posts
+// @Description Retrieve all posts from public clubs
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Post "Public posts retrieved successfully"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts/public [get]
 func (h *PostHandler) ListPublicPosts(c *gin.Context) {
 	posts, err := h.postService.ListPublicPosts()
 	if err != nil {
@@ -262,6 +270,14 @@ func (h *PostHandler) ListPublicPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
+// @Summary List popular public posts
+// @Description Retrieve popular posts from public clubs based on number of likes
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Post "Popular public posts retrieved successfully"
+// @Failure 500 {object} gin.H "Internal server error"
+// @Router /posts/popular [get]
 func (h *PostHandler) ListPopularPublicPosts(c *gin.Context) {
 	posts, err := h.postService.ListPopularPublicPosts(20)
 	if err != nil {
