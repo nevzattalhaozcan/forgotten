@@ -44,6 +44,7 @@ func (s *EventService) CreateEvent(clubID uint, req *models.CreateEventRequest) 
 		Location:     req.Location,
 		OnlineLink:   req.OnlineLink,
 		MaxAttendees: req.MaxAttendees,
+		IsPublic:     req.IsPublic,
 	}
 
 	if err := s.eventRepo.Create(event); err != nil {
@@ -122,6 +123,10 @@ func (s *EventService) UpdateEvent(id uint, req *models.UpdateEventRequest) (*mo
 	}
 	if req.MaxAttendees != nil {
 		event.MaxAttendees = req.MaxAttendees
+	}
+
+	if req.IsPublic != nil {
+		event.IsPublic = *req.IsPublic
 	}
 
 	if err := s.eventRepo.Update(event); err != nil {
