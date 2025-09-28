@@ -149,7 +149,7 @@ func RequireClubMembership(clubRepo repository.ClubRepository) gin.HandlerFunc {
 
 		clubIDParam := c.Param("id")
 
-		if clubIDParam == "" {
+		if clubIDParam != "" {
 			clubID64, parseErr := strconv.ParseUint(clubIDParam, 10, 32)
 			if parseErr != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
@@ -171,7 +171,7 @@ func RequireClubMembership(clubRepo repository.ClubRepository) gin.HandlerFunc {
 				ClubID uint `json:"club_id"`
 			}
 
-			if json.Unmarshal(bodyBytes, &reqBody) != nil && reqBody.ClubID > 0 {
+			if json.Unmarshal(bodyBytes, &reqBody) == nil && reqBody.ClubID > 0 {
 				clubID = reqBody.ClubID
 			} else {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "club_id is required in body"})
