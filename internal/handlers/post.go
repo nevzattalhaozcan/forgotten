@@ -252,6 +252,26 @@ func (h *PostHandler) ListAllPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
+func (h *PostHandler) ListPublicPosts(c *gin.Context) {
+	posts, err := h.postService.ListPublicPosts()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
+}
+
+func (h *PostHandler) ListPopularPublicPosts(c *gin.Context) {
+	posts, err := h.postService.ListPopularPublicPosts(20)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
+}
+
 // @Summary Like a post
 // @Description Like a post by its ID
 // @Tags Posts

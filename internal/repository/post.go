@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
 	"gorm.io/gorm"
 )
@@ -74,6 +76,40 @@ func (r *postRepository) ListAll() ([]models.Post, error) {
 		return nil, err
 	}
 	return posts, nil
+}
+
+func (r *postRepository) ListPublicPosts() ([]models.Post, error) {
+    var posts []models.Post
+    if err := r.db.
+        Preload("User").
+        Preload("Club"). // Add this to show which club the post belongs to
+        Preload("Comments").
+        Preload("Likes").
+        Joins("JOIN clubs ON posts.club_id = clubs.id").
+        Where("clubs.is_private = ?", false). // Fix: false for public clubs
+        Order("posts.likes_count DESC, posts.created_at DESC"). // Popular first
+        Limit(20). // Limit for homepage
+        Find(&posts).Error; err != nil {
+        return nil, err
+    }
+    return posts, nil
+}
+
+func (r *postRepository) ListPopularPublicPosts(limit int) ([]models.Post, error) {
+    var posts []models.Post
+    if err := r.db.
+        Preload("User").
+        Preload("Club").
+        Preload("Comments").
+        Preload("Likes").
+        Joins("JOIN clubs ON posts.club_id = clubs.id").
+        Where("clubs.is_private = ? AND posts.created_at > ?", false, time.Now().AddDate(0, 0, -30)). // Last 30 days
+        Order("posts.likes_count DESC, posts.comments_count DESC, posts.created_at DESC").
+        Limit(limit).
+        Find(&posts).Error; err != nil {
+        return nil, err
+    }
+    return posts, nil
 }
 
 func (r *postRepository) AddLike(like *models.PostLike) error {

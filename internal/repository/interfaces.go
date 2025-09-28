@@ -63,6 +63,8 @@ type PostRepository interface {
 	ListByUserID(userID uint) ([]models.Post, error)
 	ListByClubID(clubID uint) ([]models.Post, error)
 	ListAll() ([]models.Post, error)
+	ListPublicPosts() ([]models.Post, error)
+	ListPopularPublicPosts(limit int) ([]models.Post, error)
 	AddLike(like *models.PostLike) error
 	RemoveLike(userID, postID uint) error
 	ListLikesByPostID(postID uint) ([]models.PostLikeResponse, error)

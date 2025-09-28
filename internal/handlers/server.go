@@ -114,9 +114,26 @@ func (s *Server) setupRoutes() {
 	{
 		api.POST("/auth/register", userHandler.Register)
 		api.POST("/auth/login", userHandler.Login)
+
 		api.GET("/clubs", clubHandler.GetAllClubs)
 		api.GET("/clubs/:id", clubHandler.GetClub)
+		api.GET("/clubs/:id/members", clubHandler.ListClubMembers)
 		api.GET("/clubs/:id/ratings", clubHandler.ListClubRatings)
+
+		api.GET("/posts/public", postHandler.ListPublicPosts)
+		api.GET("/posts/popular", postHandler.ListPopularPublicPosts)
+
+		api.GET("/books", bookHandler.ListBooks)
+		api.GET("/books/:id", bookHandler.GetBookByID)
+
+		api.GET("/posts/:id/likes", postHandler.ListLikesByPostID)
+		api.GET("/posts", postHandler.ListAllPosts)
+		api.GET("/posts/:id", postHandler.GetPostByID)
+
+		api.GET("/posts/:id/comments", commentHandler.ListCommentsByPostID)
+		api.GET("/users/:id/comments", commentHandler.ListCommentsByUserID)
+		api.GET("/comments/:id", commentHandler.GetCommentByID)
+		api.GET("/comments/:id/likes", commentHandler.ListLikesByCommentID)
 	}
 
 	protected := api.Group("/")
@@ -135,8 +152,7 @@ func (s *Server) setupRoutes() {
 		protected.POST("/clubs/:id/join", clubHandler.JoinClub)
 		protected.POST("/clubs/:id/leave", middleware.RequireClubMembership(clubRepo), clubHandler.LeaveClub)
 		protected.POST("/clubs/:id/ratings", middleware.RequireClubMembership(clubRepo), clubHandler.RateClub)
-
-		protected.GET("/clubs/:id/members", clubHandler.ListClubMembers)
+		
 		protected.PUT("/clubs/:id/members/:user_id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), clubHandler.UpdateClubMember)
 		protected.GET("/clubs/:id/members/:user_id", clubHandler.GetClubMember)
 
@@ -150,31 +166,22 @@ func (s *Server) setupRoutes() {
 		protected.GET("/events/:id/attendees", middleware.RequireClubMembership(clubRepo), eventHandler.GetEventAttendees)
 
 		protected.POST("/books", middleware.RestrictToRoles("admin", "superuser"), bookHandler.CreateBook)
-		protected.GET("/books/:id", bookHandler.GetBookByID)
 		protected.PUT("/books/:id", middleware.RestrictToRoles("admin", "superuser"), bookHandler.UpdateBook)
 		protected.DELETE("/books/:id", middleware.RestrictToRoles("admin", "superuser"), bookHandler.DeleteBook)
-		protected.GET("/books", bookHandler.ListBooks)
 
 		protected.POST("/posts", middleware.RequireClubMembership(clubRepo), postHandler.CreatePost)
-		protected.GET("/posts/:id", postHandler.GetPostByID)
 		protected.PUT("/posts/:id", middleware.RequireClubMembership(clubRepo), postHandler.UpdatePost)
 		protected.DELETE("/posts/:id", middleware.RequireClubMembership(clubRepo), postHandler.DeletePost)
-		protected.GET("/posts", postHandler.ListAllPosts)
 
 		protected.POST("/posts/:id/like", middleware.RequireClubMembership(clubRepo), postHandler.LikePost)
 		protected.POST("/posts/:id/unlike", middleware.RequireClubMembership(clubRepo), postHandler.UnlikePost)
-		protected.GET("/posts/:id/likes", postHandler.ListLikesByPostID)
 
 		protected.POST("/posts/:id/comments", middleware.RequireClubMembership(clubRepo), commentHandler.CreateComment)
-		protected.GET("/comments/:id", commentHandler.GetCommentByID)
 		protected.PUT("/comments/:id", middleware.RequireClubMembership(clubRepo), commentHandler.UpdateComment)
 		protected.DELETE("/comments/:id", middleware.RequireClubMembership(clubRepo), commentHandler.DeleteComment)
-		protected.GET("/posts/:id/comments", commentHandler.ListCommentsByPostID)
-		protected.GET("/users/:id/comments", commentHandler.ListCommentsByUserID)
 
 		protected.POST("/comments/:id/like", middleware.RequireClubMembership(clubRepo), commentHandler.LikeComment)
 		protected.POST("/comments/:id/unlike", middleware.RequireClubMembership(clubRepo), commentHandler.UnlikeComment)
-		protected.GET("/comments/:id/likes", commentHandler.ListLikesByCommentID)
 
 		protected.POST("/users/:id/reading/sync", middleware.AuthorizeSelf(), readingHandler.SyncUserStats)
 		protected.POST("/users/:id/reading/start", middleware.AuthorizeSelf(), readingHandler.StartReading)

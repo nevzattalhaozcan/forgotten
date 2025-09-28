@@ -182,6 +182,32 @@ func (s *PostService) ListAllPosts() ([]models.PostResponse, error) {
 	return responses, nil
 }
 
+func (s *PostService) ListPublicPosts() ([]models.PostResponse, error) {
+	posts, err := s.postRepo.ListPublicPosts()
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []models.PostResponse
+	for _, post := range posts {
+		responses = append(responses, post.ToResponse())
+	}
+	return responses, nil
+}
+
+func (s *PostService) ListPopularPublicPosts(limit int) ([]models.PostResponse, error) {
+	posts, err := s.postRepo.ListPopularPublicPosts(limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []models.PostResponse
+	for _, post := range posts {
+		responses = append(responses, post.ToResponse())
+	}
+	return responses, nil
+}
+
 func (s *PostService) LikePost(userID, postID uint) error {
 	_, err := s.userRepo.GetByID(userID)
 	if err != nil {
