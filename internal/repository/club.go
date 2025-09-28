@@ -184,3 +184,19 @@ func (r *clubRatingRepository) GetAggregateForClub(clubID uint) (float32, int, e
 func (r *clubRepository) UpdateMembership(m *models.ClubMembership) error {
 	return r.db.Save(m).Error
 }
+
+func (r *clubRepository) ListUserClubs(userID uint) ([]*models.Club, error) {
+	var clubs []*models.Club
+	err := r.db.Joins("JOIN club_memberships ON club_memberships.club_id = clubs.id").
+		Where("club_memberships.user_id = ? AND club_memberships.is_approved = true", userID).
+		Preload("Owner").
+		Preload("Moderators").
+		Preload("Members").
+		Preload("Members.User").
+		Preload("Posts").
+		Find(&clubs).Error
+	if err != nil {
+		return nil, err
+	}
+	return clubs, nil
+}

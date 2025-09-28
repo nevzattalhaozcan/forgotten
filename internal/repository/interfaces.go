@@ -29,6 +29,7 @@ type ClubRepository interface {
 	UpdateRatingAggregate(clubID uint, avg float32, count int) error
 	UpdateMembership(m *models.ClubMembership) error
 	CountApprovedMembers(clubID uint) (int64, error)
+	ListUserClubs(userID uint) ([]*models.Club, error)
 }
 
 type ClubRatingRepository interface {

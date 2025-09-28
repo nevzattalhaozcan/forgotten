@@ -552,3 +552,32 @@ func (h *ClubHandler) ListClubRatings(c *gin.Context) {
 		"ratings": ratings,
 	})
 }
+
+// @Summary Get user's clubs
+// @Description Retrieve a list of clubs the authenticated user is a member of
+// @Tags Users
+// @Produce json
+// @Success 200 {object} map[string]interface{} "List of user's clubs"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/users/my-clubs [get]
+func (h *ClubHandler) GetMyClubs(c *gin.Context) {
+	uidRaw, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	userID, ok := uidRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	clubs, err := h.clubService.ListUserClubs(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"clubs": clubs})
+}

@@ -514,3 +514,16 @@ func (s *ClubService) TransferOwnership(clubID, currentOwnerID, newOwnerID uint)
 
 	return nil
 }
+
+func (s *ClubService) ListUserClubs(userID uint) ([]models.ClubResponse, error) {
+	clubs, err := s.clubRepo.ListUserClubs(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []models.ClubResponse
+	for _, club := range clubs {
+		responses = append(responses, club.ToResponse())
+	}
+	return responses, nil
+}

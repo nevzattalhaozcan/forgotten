@@ -154,6 +154,7 @@ func (s *Server) setupRoutes() {
 		protected.POST("/clubs/:id/join", clubHandler.JoinClub)
 		protected.POST("/clubs/:id/leave", middleware.RequireClubMembership(clubRepo), clubHandler.LeaveClub)
 		protected.POST("/clubs/:id/ratings", middleware.RequireClubMembership(clubRepo), clubHandler.RateClub)
+		protected.GET("/my-clubs", clubHandler.GetMyClubs)
 		
 		protected.PUT("/clubs/:id/members/:user_id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), clubHandler.UpdateClubMember)
 		protected.GET("/clubs/:id/members/:user_id", clubHandler.GetClubMember)
