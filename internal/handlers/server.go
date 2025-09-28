@@ -159,8 +159,8 @@ func (s *Server) setupRoutes() {
 		protected.GET("/clubs/:id/members/:user_id", clubHandler.GetClubMember)
 
 		protected.POST("/clubs/:id/events", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), eventHandler.CreateEvent)
-		protected.GET("/clubs/:id/events", eventHandler.GetClubEvents)
-		protected.GET("/events/:id", eventHandler.GetEvent)
+		protected.GET("/clubs/:id/events", middleware.RequireClubMembership(clubRepo), eventHandler.GetClubEvents)
+		protected.GET("/events/:id", middleware.RequireClubMembership(clubRepo), eventHandler.GetEvent)
 		protected.PUT("/events/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), eventHandler.UpdateEvent)
 		protected.DELETE("/events/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), eventHandler.DeleteEvent)
 
