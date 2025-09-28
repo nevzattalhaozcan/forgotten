@@ -291,6 +291,13 @@ func (h *EventHandler) GetEventAttendees(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"attendees": attendees})
 }
 
+// @Summary Get public events
+// @Description Retrieve a list of all public events
+// @Tags Events
+// @Produce json
+// @Success 200 {object} map[string]interface{} "List of public events"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/events/public [get]
 func (h *EventHandler) GetPublicEvents(c *gin.Context) {
 	events, err := h.eventService.GetPublicEvents()
 	if err != nil {
