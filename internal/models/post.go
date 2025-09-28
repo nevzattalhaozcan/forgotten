@@ -28,10 +28,12 @@ type Post struct {
 	ViewsCount    int        `json:"views_count" gorm:"default:0"`
 	UserID        uint       `json:"user_id"`
 	ClubID        uint       `json:"club_id"`
+
+	Club          Club       `json:"club" gorm:"foreignKey:ClubID"`
 	User          User       `json:"user" gorm:"foreignKey:UserID"`
 	Comments      []Comment  `json:"comments,omitempty" gorm:"foreignKey:PostID"`
 	Likes         []PostLike `json:"likes,omitempty" gorm:"foreignKey:PostID"`
-
+	
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
