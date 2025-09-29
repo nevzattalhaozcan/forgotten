@@ -225,8 +225,11 @@ func (p *Post) ToResponse() PostResponse {
 
 	if len(p.TypeData) > 0 {
 		var typeData interface{}
-		json.Unmarshal(p.TypeData, &typeData)
-		response.TypeData = typeData
+		if err := json.Unmarshal(p.TypeData, &typeData); err == nil {
+			response.TypeData = typeData
+		} else {
+			response.TypeData = nil
+		}
 	}
 	return response
 }

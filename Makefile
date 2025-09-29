@@ -112,3 +112,20 @@ mocks:
 # Generate swagger docs
 swagger:
 	swag init -g cmd/server/main.go -o ./docs
+
+# Lint the code
+lint:
+	golangci-lint run
+
+# Lint and fix auto-fixable issues  
+lint-fix:
+	golangci-lint run --fix
+
+# Install linting tools
+lint-install:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Full check (tests + lint)
+check: test lint
+
+.PHONY: lint lint-fix lint-install check

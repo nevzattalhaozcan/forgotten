@@ -406,7 +406,9 @@ func (s *PostService) VoteOnPoll(postID, userID uint, req *models.PollVoteReques
 
 	if !pollData.AllowMultiple {
 		for _, vote := range existingVotes {
-			s.postRepo.RemoveVoteFromPoll(postID, userID, vote.OptionID)
+			if err := s.postRepo.RemoveVoteFromPoll(postID, userID, vote.OptionID); err != nil {
+				return err
+			}
 		}
 	}
 
