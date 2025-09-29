@@ -175,6 +175,8 @@ func (s *Server) setupRoutes() {
 		protected.POST("/posts", middleware.RequireClubMembership(clubRepo), postHandler.CreatePost)
 		protected.PUT("/posts/:id", middleware.RequireClubMembership(clubRepo), postHandler.UpdatePost)
 		protected.DELETE("/posts/:id", middleware.RequireClubMembership(clubRepo), postHandler.DeletePost)
+		protected.GET("/posts/reviews", middleware.RequireClubMembership(clubRepo), postHandler.GetReviewsByBook)
+		protected.POST("/posts/:id/vote", middleware.RequireClubMembership(clubRepo), postHandler.VoteOnPoll)
 
 		protected.POST("/posts/:id/like", middleware.RequireClubMembership(clubRepo), postHandler.LikePost)
 		protected.POST("/posts/:id/unlike", middleware.RequireClubMembership(clubRepo), postHandler.UnlikePost)
