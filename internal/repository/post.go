@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
@@ -166,4 +167,55 @@ func (r *postRepository) UpdateLikesCount(postID uint, count int) error {
 	return r.db.Model(&models.Post{}).
 		Where("id = ?", postID).
 		Update("likes_count", count).Error
+}
+
+func (r *postRepository) VoteOnPoll(vote *models.PollVote) error {
+    return r.db.Create(vote).Error
+}
+
+func (r *postRepository) RemoveVoteFromPoll(postID, userID uint, optionID string) error {
+    return r.db.Where("post_id = ? AND user_id = ? AND option_id = ?", postID, userID, optionID).
+        Delete(&models.PollVote{}).Error
+}
+
+func (r *postRepository) GetUserPollVotes(postID, userID uint) ([]models.PollVote, error) {
+    var votes []models.PollVote
+    err := r.db.Where("post_id = ? AND user_id = ?", postID, userID).Find(&votes).Error
+    return votes, err
+}
+
+// TODO: Find a way to update poll vote counts
+func (r *postRepository) UpdatePollVoteCounts(postID uint) error {
+    return nil
+}
+
+func (r *postRepository) GetPostsByType(postType string, limit, offset int) ([]models.Post, error) {
+    var posts []models.Post
+    err := r.db.Where("type = ?", postType).
+        Preload("User").
+        Preload("Club").
+        Limit(limit).
+        Offset(offset).
+        Find(&posts).Error
+    return posts, err
+}
+
+func (r *postRepository) GetReviewPostsByBookID(bookID uint) ([]models.Post, error) {
+    var posts []models.Post
+    err := r.db.Where("type = ? AND type_data->>'book_id' = ?", "review", strconv.Itoa(int(bookID))).
+        Preload("User").
+        Find(&posts).Error
+    return posts, err
+}
+
+func (r *postRepository) GetPollPostsByClubID(clubID uint, includeExpired bool) ([]models.Post, error) {
+    query := r.db.Where("type = ? AND club_id = ?", "poll", clubID)
+    
+    if !includeExpired {
+        query = query.Where("(type_data->>'expires_at' IS NULL OR type_data->>'expires_at'::timestamp > NOW())")
+    }
+    
+    var posts []models.Post
+    err := query.Preload("User").Find(&posts).Error
+    return posts, err
 }

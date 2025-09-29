@@ -417,3 +417,61 @@ func (h *PostHandler) ListLikesByPostID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"likes": likes})
 }
+
+// @Summary Vote on a poll
+// @Description Vote on a poll post
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Param vote body models.PollVoteRequest true "Vote data"
+// @Success 200 {object} models.SuccessResponse "Vote recorded successfully"
+// @Failure 400 {object} models.ErrorResponse "Bad request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 404 {object} models.ErrorResponse "Post not found"
+// @Router /posts/{id}/vote [post]
+func (h *PostHandler) VoteOnPoll(c *gin.Context) {
+    postID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post ID"})
+        return
+    }
+
+    userID, _ := c.Get("user_id")
+    
+    var req models.PollVoteRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    if err := h.postService.VoteOnPoll(uint(postID), userID.(uint), &req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "vote recorded successfully"})
+}
+
+// @Summary Get reviews by book
+// @Description Get all review posts for a specific book
+// @Tags Posts
+// @Produce json
+// @Param book_id query int true "Book ID"
+// @Success 200 {array} models.PostResponse "Reviews retrieved successfully"
+// @Router /posts/reviews [get]
+func (h *PostHandler) GetReviewsByBook(c *gin.Context) {
+    bookID, err := strconv.ParseUint(c.Query("book_id"), 10, 32)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "book_id is required"})
+        return
+    }
+
+    reviews, err := h.postService.GetReviewsByBook(uint(bookID))
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"reviews": reviews})
+}

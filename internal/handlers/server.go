@@ -96,7 +96,7 @@ func (s *Server) setupRoutes() {
 	bookService := services.NewBookService(bookRepo, s.config)
 	bookHandler := NewBookHandler(bookService)
 
-	postService := services.NewPostService(postRepo, userRepo, clubRepo, s.config)
+	postService := services.NewPostService(postRepo, userRepo, clubRepo, bookRepo, s.db, s.config)
 	postHandler := NewPostHandler(postService)
 
 	commentService := services.NewCommentService(commentRepo, postRepo, userRepo, s.config)

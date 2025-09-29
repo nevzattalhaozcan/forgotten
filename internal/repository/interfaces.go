@@ -73,6 +73,13 @@ type PostRepository interface {
 	HasUserLiked(userID, postID uint) (bool, error)
 	CountLikes(postID uint) (int64, error)
 	UpdateLikesCount(postID uint, count int) error
+    VoteOnPoll(vote *models.PollVote) error
+    RemoveVoteFromPoll(postID, userID uint, optionID string) error
+    GetUserPollVotes(postID, userID uint) ([]models.PollVote, error)
+    UpdatePollVoteCounts(postID uint) error
+    GetPostsByType(postType string, limit, offset int) ([]models.Post, error)
+    GetReviewPostsByBookID(bookID uint) ([]models.Post, error)
+    GetPollPostsByClubID(clubID uint, includeExpired bool) ([]models.Post, error)
 }
 
 type CommentRepository interface {

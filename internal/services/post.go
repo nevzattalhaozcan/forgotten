@@ -1,7 +1,10 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
@@ -13,14 +16,18 @@ type PostService struct {
 	postRepo repository.PostRepository
 	userRepo repository.UserRepository
 	clubRepo repository.ClubRepository
+	bookRepo repository.BookRepository
+	db       *gorm.DB
 	config   *config.Config
 }
 
-func NewPostService(postRepo repository.PostRepository, userRepo repository.UserRepository, clubRepo repository.ClubRepository, config *config.Config) *PostService {
+func NewPostService(postRepo repository.PostRepository, userRepo repository.UserRepository, clubRepo repository.ClubRepository, bookRepo repository.BookRepository, db *gorm.DB, config *config.Config) *PostService {
 	return &PostService{
 		postRepo: postRepo,
 		userRepo: userRepo,
 		clubRepo: clubRepo,
+		bookRepo: bookRepo,
+		db:       db,
 		config:   config,
 	}
 }
@@ -50,16 +57,63 @@ func (s *PostService) CreatePost(userID uint, req *models.CreatePostRequest) (*m
 		UserID:  userID,
 	}
 
+	if req.TypeData != nil {
+		switch req.Type {
+		case "review":
+			if reviewData, ok := req.TypeData.(map[string]interface{}); ok {
+				if bookIDFloat, exists := reviewData["book_id"].(float64); exists {
+					if bookID := uint(bookIDFloat); bookID > 0 {
+						if book, err := s.bookRepo.GetByID(bookID); err == nil {
+							reviewData["book_title"] = book.Title
+							reviewData["book_author"] = book.Author
+						}
+					}
+				}
+				req.TypeData = reviewData
+			}
+		case "annotation":
+			if annotationData, ok := req.TypeData.(map[string]interface{}); ok {
+				if bookIDFloat, exists := annotationData["book_id"].(float64); exists {
+					if bookID := uint(bookIDFloat); bookID > 0 {
+						if book, err := s.bookRepo.GetByID(bookID); err == nil {
+							annotationData["book_title"] = book.Title
+							annotationData["book_author"] = book.Author
+						}
+					}
+				}
+				req.TypeData = annotationData
+			}
+		case "poll":
+			if pollData, ok := req.TypeData.(map[string]interface{}); ok {
+				if options, exists := pollData["options"].([]interface{}); exists {
+					for i, option := range options {
+						if optionMap, ok := option.(map[string]interface{}); ok {
+							optionMap["id"] = fmt.Sprintf("opt_%d", i+1)
+							optionMap["votes"] = 0
+						}
+					}
+				}
+				req.TypeData = pollData
+			}
+		}
+
+		typeDataBytes, err := json.Marshal(req.TypeData)
+        if err != nil {
+            return nil, fmt.Errorf("invalid type data: %v", err)
+        }
+        post.TypeData = models.PostTypeData(typeDataBytes)
+	}
+
 	if err := s.postRepo.Create(post); err != nil {
 		return nil, err
 	}
 
 	created, err := s.postRepo.GetByID(post.ID)
-    if err != nil {
-        return nil, err
-    }
-    response := created.ToResponse()
-    return &response, nil
+	if err != nil {
+		return nil, err
+	}
+	response := created.ToResponse()
+	return &response, nil
 }
 
 func (s *PostService) GetPostByID(id uint) (*models.PostResponse, error) {
@@ -102,11 +156,11 @@ func (s *PostService) UpdatePost(id uint, req *models.UpdatePostRequest) (*model
 	}
 
 	created, err := s.postRepo.GetByID(post.ID)
-    if err != nil {
-        return nil, err
-    }
-    response := created.ToResponse()
-    return &response, nil
+	if err != nil {
+		return nil, err
+	}
+	response := created.ToResponse()
+	return &response, nil
 }
 
 func (s *PostService) DeletePost(id uint) error {
@@ -309,4 +363,137 @@ func (s *PostService) ListLikesByPostID(postID uint) ([]models.PostLikeResponse,
 	}
 
 	return likes, nil
+}
+
+func (s *PostService) VoteOnPoll(postID, userID uint, req *models.PollVoteRequest) error {
+	post, err := s.postRepo.GetByID(postID)
+	if err != nil {
+		return err
+	}
+
+	if post.Type != "poll" {
+		return errors.New("post is not a poll")
+	}
+
+	pollData, err := post.GetPollData()
+	if err != nil || pollData == nil {
+		return errors.New("invalid poll data")
+	}
+
+	if pollData.ExpiresAt != nil && pollData.ExpiresAt.Before(time.Now()) {
+		return errors.New("poll has expired")
+	}
+
+	existingVotes, err := s.postRepo.GetUserPollVotes(postID, userID)
+	if err != nil {
+		return err
+	}
+
+	if len(existingVotes) > 0 && !pollData.AllowMultiple {
+		return errors.New("multiple votes not allowed")
+	}
+
+	validOptions := make(map[string]bool)
+	for _, option := range pollData.Options {
+		validOptions[option.ID] = true
+	}
+
+	for _, optionID := range req.OptionIDs {
+		if !validOptions[optionID] {
+			return fmt.Errorf("invalid option ID: %s", optionID)
+		}
+	}
+
+	if !pollData.AllowMultiple {
+		for _, vote := range existingVotes {
+			s.postRepo.RemoveVoteFromPoll(postID, userID, vote.OptionID)
+		}
+	}
+
+	for _, optionID := range req.OptionIDs {
+		vote := &models.PollVote{
+			PostID:   postID,
+			UserID:   userID,
+			OptionID: optionID,
+		}
+		if err := s.postRepo.VoteOnPoll(vote); err != nil {
+			return err
+		}
+	}
+
+	return s.updatePollCounts(postID)
+}
+
+func (s *PostService) updatePollCounts(postID uint) error {
+	var votes []models.PollVote
+	s.db.Where("post_id = ?", postID).Find(&votes)
+
+	voteCounts := make(map[string]int)
+	for _, vote := range votes {
+		voteCounts[vote.OptionID]++
+	}
+
+	post, err := s.postRepo.GetByID(postID)
+	if err != nil {
+		return err
+	}
+
+	pollData, err := post.GetPollData()
+	if err != nil {
+		return err
+	}
+
+	for i := range pollData.Options {
+		pollData.Options[i].Votes = voteCounts[pollData.Options[i].ID]
+	}
+
+	typeDataBytes, _ := json.Marshal(pollData)
+	post.TypeData = models.PostTypeData(typeDataBytes)
+
+	return s.postRepo.Update(post)
+}
+
+func (s *PostService) GetPostByIDForUser(postID, userID uint) (*models.PostResponse, error) {
+    post, err := s.postRepo.GetByID(postID)
+    if err != nil {
+        return nil, err
+    }
+    
+    response := post.ToResponse()
+    
+    if post.Type == "poll" {
+        userVotes, err := s.postRepo.GetUserPollVotes(postID, userID)
+        if err == nil {
+            response.UserVoted = len(userVotes) > 0
+            for _, vote := range userVotes {
+                response.UserVotes = append(response.UserVotes, vote.OptionID)
+            }
+        }
+    }
+    
+    return &response, nil
+}
+
+func (s *PostService) GetReviewsByBook(bookID uint) ([]models.PostResponse, error) {
+	_, err := s.bookRepo.GetByID(bookID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("book not found")
+		}
+		return nil, err
+	}
+
+	posts, err := s.postRepo.GetReviewPostsByBookID(bookID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("no reviews found for this book")
+		}
+		return nil, err
+	}
+
+	var responses []models.PostResponse
+	for _, post := range posts {
+		responses = append(responses, post.ToResponse())
+	}
+	return responses, nil
 }
