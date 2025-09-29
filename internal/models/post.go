@@ -80,7 +80,6 @@ type ReviewData struct {
 	Rating     float32 `json:"rating" validate:"required,gte=1,lte=5"`
 	BookTitle  string  `json:"book_title,omitempty"`
 	BookAuthor string  `json:"book_author,omitempty"`
-	ReviewText *string `json:"review_text,omitempty"`
 }
 
 type PollData struct {
