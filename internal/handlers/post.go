@@ -475,3 +475,169 @@ func (h *PostHandler) GetReviewsByBook(c *gin.Context) {
 
     c.JSON(http.StatusOK, gin.H{"reviews": reviews})
 }
+
+// @Summary Get posts by type
+// @Description Get posts filtered by type with pagination
+// @Tags Posts
+// @Produce json
+// @Param type query string true "Post type (e.g., 'announcement', 'discussion', 'poll', 'review')"
+// @Param limit query int true "Number of posts to return"
+// @Param offset query int true "Number of posts to skip"
+// @Success 200 {array} models.PostResponse "Posts retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} models.ErrorResponse
+// @Router /posts/by-type [get]
+func (h *PostHandler) GetPostsByType(c *gin.Context) {
+	postType := c.Query("type")
+	if postType == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "type is required"})
+		return
+	}
+	limitStr := c.Query("limit")
+	if limitStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "limit is required"})
+		return
+	}
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "limit must be an integer"})
+		return
+	}
+
+	offsetStr := c.Query("offset")
+	if offsetStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "offset is required"})
+		return
+	}
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "offset must be an integer"})
+		return
+	}
+
+	posts, err := h.postService.GetPostsByType(postType, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
+}
+
+// @Summary Get poll posts by club ID
+// @Description Retrieve all poll posts associated with a specific club
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Club ID"
+// @Param include_expired query bool false "Include expired polls"
+// @Success 200 {array} models.Post "Poll posts retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} models.ErrorResponse
+// @Router /clubs/{id}/posts/polls [get]
+func (h *PostHandler) GetPollPostsByClubID(c *gin.Context) {
+	clubIDParam := c.Param("id")
+	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+	includeExpired := c.Query("include_expired") == "true"
+
+	posts, err := h.postService.GetPollPostsByClubID(uint(clubID), includeExpired)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
+}
+
+// @Summary Get user poll votes
+// @Description Retrieve the poll votes made by the authenticated user for a specific poll post
+// @Tags Posts
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {object} map[string]interface{} "User poll votes retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse
+// @Router /posts/{id}/poll/votes [get]
+func (h *PostHandler) GetUserPollVotes(c *gin.Context) {
+	postIDParam := c.Param("id")
+	postID, err := strconv.ParseUint(postIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post ID"})
+		return
+	}
+
+	useridRaw, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+
+	userID, ok := useridRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	votes, err := h.postService.GetUserPollVotes(uint(postID), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"votes": votes})
+}
+
+// @Summary Remove vote from poll
+// @Description Remove a user's vote from a poll post
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Param vote body models.PollVoteRequest true "Vote data"
+// @Success 200 {object} map[string]interface{} "Vote removed successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse
+// @Router /posts/{id}/unvote [post]
+func (h *PostHandler) RemoveVoteFromPoll(c *gin.Context) {
+	postIDParam := c.Param("id")
+	postID, err := strconv.ParseUint(postIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post ID"})
+		return
+	}
+
+	useridRaw, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+
+	userID, ok := useridRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	var req models.PollVoteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.postService.RemoveVoteFromPoll(uint(postID), userID, req.OptionIDs[0]); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "vote removed successfully"})
+}

@@ -150,6 +150,7 @@ func (s *Server) setupRoutes() {
 		protected.POST("/clubs", clubHandler.CreateClub)
 		protected.PUT("/clubs/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin"), clubHandler.UpdateClub)
 		protected.DELETE("/clubs/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin"), clubHandler.DeleteClub)
+		protected.GET("/clubs/:id/poll", postHandler.GetPollPostsByClubID)
 
 		protected.POST("/clubs/:id/join", clubHandler.JoinClub)
 		protected.POST("/clubs/:id/leave", middleware.RequireClubMembership(clubRepo), clubHandler.LeaveClub)
@@ -176,7 +177,11 @@ func (s *Server) setupRoutes() {
 		protected.PUT("/posts/:id", middleware.RequireClubMembership(clubRepo), postHandler.UpdatePost)
 		protected.DELETE("/posts/:id", middleware.RequireClubMembership(clubRepo), postHandler.DeletePost)
 		protected.GET("/posts/reviews", middleware.RequireClubMembership(clubRepo), postHandler.GetReviewsByBook)
+		protected.GET("/posts/filter", middleware.RequireClubMembership(clubRepo), postHandler.GetPostsByType)
+
 		protected.POST("/posts/:id/vote", middleware.RequireClubMembership(clubRepo), postHandler.VoteOnPoll)
+		protected.POST("/posts/:id/unvote", middleware.RequireClubMembership(clubRepo), postHandler.RemoveVoteFromPoll)
+		protected.GET("/posts/:id/poll/votes", middleware.RequireClubMembership(clubRepo), postHandler.GetUserPollVotes)	
 
 		protected.POST("/posts/:id/like", middleware.RequireClubMembership(clubRepo), postHandler.LikePost)
 		protected.POST("/posts/:id/unlike", middleware.RequireClubMembership(clubRepo), postHandler.UnlikePost)

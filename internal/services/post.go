@@ -499,3 +499,77 @@ func (s *PostService) GetReviewsByBook(bookID uint) ([]models.PostResponse, erro
 	}
 	return responses, nil
 }
+
+func (s *PostService) GetPostsByType(postType string, limit, offset int) ([]models.PostResponse, error) {
+	posts, err := s.postRepo.GetPostsByType(postType, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []models.PostResponse
+	for _, post := range posts {
+		responses = append(responses, post.ToResponse())
+	}
+	return responses, nil
+}
+
+func (s *PostService) GetPollPostsByClubID(clubID uint, includeExpired bool) ([]models.PostResponse, error) {
+	_, err := s.clubRepo.GetByID(clubID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("club not found")
+		}
+		return nil, err
+	}
+
+	posts, err := s.postRepo.GetPollPostsByClubID(clubID, includeExpired)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []models.PostResponse
+	for _, post := range posts {
+		responses = append(responses, post.ToResponse())
+	}
+	return responses, nil
+}
+
+func (s *PostService) RemoveVoteFromPoll(postID, userID uint, optionID string) error {
+	_, err := s.postRepo.GetByID(postID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("post not found")
+		}
+		return err
+	}
+
+	_, err = s.userRepo.GetByID(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("user not found")
+		}
+		return err
+	}
+
+	return s.postRepo.RemoveVoteFromPoll(postID, userID, optionID)
+}
+
+func (s *PostService) GetUserPollVotes(postID, userID uint) ([]models.PollVote, error) {
+	_, err := s.postRepo.GetByID(postID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("post not found")
+		}
+		return nil, err
+	}
+
+	_, err = s.userRepo.GetByID(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	return s.postRepo.GetUserPollVotes(postID, userID)
+}
