@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/nevzattalhaozcan/forgotten/internal/clients"
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
 	"github.com/nevzattalhaozcan/forgotten/internal/middleware"
 	"github.com/nevzattalhaozcan/forgotten/internal/repository"
@@ -58,6 +59,7 @@ func (s *Server) setupRoutes() {
 	var clubRepo repository.ClubRepository = repository.NewClubRepository(s.db)
 	var eventRepo repository.EventRepository = repository.NewEventRepository(s.db)
 	var bookRepo repository.BookRepository = repository.NewBookRepository(s.db)
+	var olClient clients.OpenLibraryClient = *clients.NewOpenLibraryClient()
 	var postRepo repository.PostRepository = repository.NewPostRepository(s.db)
 	var commentRepo repository.CommentRepository = repository.NewCommentRepository(s.db)
 	var readingRepo repository.ReadingRepository = repository.NewReadingRepository(s.db)
@@ -93,7 +95,7 @@ func (s *Server) setupRoutes() {
 	eventService := services.NewEventService(eventRepo, clubRepo, s.config)
 	eventHandler := NewEventHandler(eventService)
 
-	bookService := services.NewBookService(bookRepo, s.config)
+	bookService := services.NewBookService(bookRepo, &olClient, s.config)
 	bookHandler := NewBookHandler(bookService)
 
 	postService := services.NewPostService(postRepo, userRepo, clubRepo, bookRepo, s.db, s.config)
@@ -123,7 +125,7 @@ func (s *Server) setupRoutes() {
 		api.GET("/posts/public", postHandler.ListPublicPosts)
 		api.GET("/posts/popular", postHandler.ListPopularPublicPosts)
 
-		api.GET("/books", bookHandler.ListBooks)
+		api.GET("/books", bookHandler.Search)
 		api.GET("/books/:id", bookHandler.GetBookByID)
 
 		api.GET("/posts/:id/likes", postHandler.ListLikesByPostID)

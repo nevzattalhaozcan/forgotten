@@ -178,3 +178,21 @@ func (h *BookHandler) ListBooks(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"books": books})
 }
+
+func (h *BookHandler) Search(c *gin.Context) {
+	query := c.Query("q")
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'q' is required"})
+		return
+	}
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	source := c.DefaultQuery("source", "all")
+
+	results, err := h.bookService.SearchBooks(query, limit, source)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"books": results})
+}

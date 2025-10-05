@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"time"
 
+	"github.com/nevzattalhaozcan/forgotten/internal/clients"
 	"github.com/nevzattalhaozcan/forgotten/internal/config"
 	"github.com/nevzattalhaozcan/forgotten/internal/models"
 	"github.com/nevzattalhaozcan/forgotten/internal/repository"
@@ -11,12 +13,14 @@ import (
 
 type BookService struct {
 	bookRepo repository.BookRepository
+	olClient *clients.OpenLibraryClient
 	config   *config.Config
 }
 
-func NewBookService(bookRepo repository.BookRepository, config *config.Config) *BookService {
+func NewBookService(bookRepo repository.BookRepository, olClient *clients.OpenLibraryClient, config *config.Config) *BookService {
 	return &BookService{
 		bookRepo: bookRepo,
+		olClient: olClient,
 		config:   config,
 	}
 }
@@ -121,6 +125,60 @@ func (s *BookService) ListBooks() ([]*models.BookResponse, error) {
 	for _, book := range books {
 		response := book.ToResponse()
 		responses = append(responses, &response)
+	}
+
+	return responses, nil
+}
+
+// source: "local", "external", "all"
+func (s *BookService) SearchBooks(query string, limit int, source string) ([]models.BookResponse, error) {
+	limitArg := limit
+	if limitArg <= 0 {
+		limitArg = 20
+	}
+
+	var responses []models.BookResponse
+	if source == "local" || source == "all" {
+		local, err := s.bookRepo.SearchLocal(query, limitArg)
+		if err == nil {
+			for _, b := range local {
+				responses = append(responses, b.ToResponse())
+			}
+			if source == "local" {
+				return responses, nil
+			}
+		}
+	}
+
+	if source == "external" || source == "all" {
+		exts, err := s.olClient.Search(query, limitArg)
+		if err == nil {
+			for _, eb := range exts {
+				var local *models.Book
+				if eb.ISBN != nil {
+					if b, err := s.bookRepo.GetByISBN(*eb.ISBN); err == nil {
+						local = b
+					}
+				}
+				if local == nil {
+					if b, err := s.bookRepo.GetByExternalID(eb.Source, eb.ExternalID); err == nil {
+						local = b
+					}
+				}
+
+				if local != nil {
+					now := time.Now()
+					local.LastAccessed = &now
+					_ = s.bookRepo.Update(local)
+					responses = append(responses, local.ToResponse())
+					continue
+				}
+
+				book := eb.ToBook()
+				_ = s.bookRepo.UpsertByExternalID(book)
+				responses = append(responses, book.ToResponse())
+			}
+		}
 	}
 
 	return responses, nil

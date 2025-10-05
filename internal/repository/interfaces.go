@@ -55,6 +55,10 @@ type BookRepository interface {
 	Update(book *models.Book) error
 	Delete(id uint) error
 	List(limit, offset int) ([]*models.Book, error)
+	GetByExternalID(source, externalID string) (*models.Book, error)
+    GetByISBN(isbn string) (*models.Book, error)
+    UpsertByExternalID(book *models.Book) error
+    SearchLocal(query string, limit int) ([]*models.Book, error)
 }
 
 type PostRepository interface {
