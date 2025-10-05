@@ -25,6 +25,7 @@ func (r *postRepository) GetByID(id uint) (*models.Post, error) {
 	if err := r.db.
 		Preload("User").
 		Preload("Comments").
+		Preload("Comments.User").
 		Preload("Likes").
 		Preload("Likes.User").
 		First(&post, id).Error; err != nil {
