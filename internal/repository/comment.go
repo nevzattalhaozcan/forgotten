@@ -15,7 +15,19 @@ func NewCommentRepository(db *gorm.DB) *commentRepository {
 }
 
 func (r *commentRepository) Create(comment *models.Comment) error {
-	return r.db.Create(comment).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(comment).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&models.Post{}).
+			Where("id = ?", comment.PostID).
+			UpdateColumn("comments_count", gorm.Expr("comments_count + ?", 1)).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (r *commentRepository) GetByID(id uint) (*models.Comment, error) {
@@ -35,7 +47,22 @@ func (r *commentRepository) Update(comment *models.Comment) error {
 }
 
 func (r *commentRepository) Delete(id uint) error {
-	return r.db.Delete(&models.Comment{}, id).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var comment models.Comment
+		if err := tx.First(&comment, id).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Delete(&models.Comment{}, id).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Exec("UPDATE posts SET comments_count = GREATEST(comments_count - 1, 0) WHERE id = ?", comment.PostID).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (r *commentRepository) ListByPostID(postID uint) ([]models.Comment, error) {
