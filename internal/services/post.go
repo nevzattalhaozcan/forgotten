@@ -236,6 +236,15 @@ func (s *PostService) ListAllPosts() ([]models.PostResponse, error) {
 	return responses, nil
 }
 
+func (s *PostService) ListPostSummaries(limit, offset int) ([]models.PostSummary, error) {
+	posts, err := s.postRepo.ListPostSummaries(limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
+
 func (s *PostService) ListPublicPosts() ([]models.PostResponse, error) {
 	posts, err := s.postRepo.ListPublicPosts()
 	if err != nil {

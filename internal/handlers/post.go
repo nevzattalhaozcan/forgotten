@@ -252,6 +252,31 @@ func (h *PostHandler) ListAllPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
+// @Summary List post summaries
+// @Description Retrieve summaries of posts with pagination
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param limit query int false "Number of posts to retrieve" default(20)
+// @Param offset query int false "Number of posts to skip" default(0)
+// @Success 200 {array} models.PostSummary "Post summaries retrieved successfully"
+// @Failure 500 {object} models.ErrorResponse
+// @Router /posts/summaries [get]
+func (h *PostHandler) ListPostSummaries(c *gin.Context) {
+	limitStr := c.DefaultQuery("limit", "20")
+	offsetStr := c.DefaultQuery("offset", "0")
+	limit, _ := strconv.Atoi(limitStr)
+	offset, _ := strconv.Atoi(offsetStr)
+
+	posts, err := h.postService.ListPostSummaries(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
+}
+
 // @Summary List public posts
 // @Description Retrieve all posts from public clubs
 // @Tags Posts

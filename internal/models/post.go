@@ -110,6 +110,33 @@ type PostData struct {
 	PostContent string `json:"post_content,omitempty"`
 }
 
+type UserSummary struct {
+	ID        uint    `json:"id"`
+	Username  string  `json:"username"`
+	AvatarURL *string `json:"avatar_url,omitempty"`
+}
+
+type ClubSummary struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+type PostSummary struct {
+	ID            uint         `json:"id" gorm:"column:id"`
+	Title         string       `json:"title" gorm:"column:title"`
+	Type          string       `json:"type" gorm:"column:type"`
+	IsPinned      bool         `json:"is_pinned" gorm:"column:is_pinned"`
+	LikesCount    int          `json:"likes_count" gorm:"column:likes_count"`
+	CommentsCount int          `json:"comments_count" gorm:"column:comments_count"`
+	ViewsCount    int          `json:"views_count" gorm:"column:views_count"`
+	UserID        uint         `json:"user_id" gorm:"column:post_user_id"`
+	ClubID        *uint        `json:"club_id" gorm:"column:post_club_id"`
+	User          UserSummary  `json:"user"`
+	Club          *ClubSummary `json:"club,omitempty"`
+	CreatedAt     time.Time    `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt     time.Time    `json:"updated_at" gorm:"column:updated_at"`
+}
+
 func (p *Post) GetReviewData() (*ReviewData, error) {
 	if p.Type != "review" || len(p.TypeData) == 0 {
 		return nil, nil
@@ -187,7 +214,7 @@ type PostResponse struct {
 }
 
 type PollVoteRequest struct {
-    OptionIDs []string `json:"option_ids" validate:"required,min=1"`
+	OptionIDs []string `json:"option_ids" validate:"required,min=1"`
 }
 
 type PostLikeResponse struct {
