@@ -126,7 +126,7 @@ type PostSummary struct {
 	Title         string       `json:"title" gorm:"column:title"`
 	Content       string       `json:"content" gorm:"column:content"`
 	Type          string       `json:"type" gorm:"column:type"`
-	TypeData      PostTypeData `json:"type_data,omitempty" gorm:"type:jsonb"`
+	TypeData      interface{} `json:"type_data,omitempty"`
 	IsPinned      bool         `json:"is_pinned" gorm:"column:is_pinned"`
 	LikesCount    int          `json:"likes_count" gorm:"column:likes_count"`
 	CommentsCount int          `json:"comments_count" gorm:"column:comments_count"`

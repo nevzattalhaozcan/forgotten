@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 
@@ -130,7 +131,6 @@ func (r *postRepository) ListPostSummaries(clubID uint, userID *uint, limit, off
 			Title:         rrow.Title,
 			Content:       rrow.Content,
 			Type:          rrow.Type,
-			TypeData:      models.PostTypeData(rrow.TypeData),
 			IsPinned:      rrow.IsPinned,
 			LikesCount:    rrow.LikesCount,
 			CommentsCount: rrow.CommentsCount,
@@ -140,6 +140,17 @@ func (r *postRepository) ListPostSummaries(clubID uint, userID *uint, limit, off
 			CreatedAt:     rrow.CreatedAt,
 			UpdatedAt:     rrow.UpdatedAt,
 		}
+
+		if rrow.TypeData != "" && rrow.TypeData != "null" {
+            var typeDataInterface interface{}
+            if err := json.Unmarshal([]byte(rrow.TypeData), &typeDataInterface); err == nil {
+                ps.TypeData = typeDataInterface
+            } else {
+                ps.TypeData = nil
+            }
+        } else {
+            ps.TypeData = nil
+        }
 
 		if userID != nil {
 			hasLiked, err := r.HasUserLiked(*userID, rrow.ID)
