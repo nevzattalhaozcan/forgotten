@@ -90,6 +90,7 @@ func autoMigrate(db *gorm.DB) error {
 		models.CommentLike{},
 		models.Post{},
 		models.PostLike{},
+		models.PollVote{},
 		models.UserBookProgress{},
 		models.ClubBookAssignment{},
 		models.ReadingLog{},
