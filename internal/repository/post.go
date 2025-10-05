@@ -81,7 +81,7 @@ func (r *postRepository) ListAll() ([]models.Post, error) {
 	return posts, nil
 }
 
-func (r *postRepository) ListPostSummaries(limit, offset int) ([]models.PostSummary, error) {
+func (r *postRepository) ListPostSummaries(clubID uint, limit, offset int) ([]models.PostSummary, error) {
 	type row struct {
 		ID            uint      `gorm:"column:id"`
 		Title         string    `gorm:"column:title"`
@@ -112,6 +112,7 @@ func (r *postRepository) ListPostSummaries(limit, offset int) ([]models.PostSumm
                 clubs.id as club_id, clubs.name as club_name`).
 		Joins("LEFT JOIN users ON users.id = posts.user_id").
 		Joins("LEFT JOIN clubs ON clubs.id = posts.club_id").
+		Where("posts.club_id = ?", clubID).
 		Limit(limit).
 		Offset(offset).
 		Order("posts.created_at DESC").

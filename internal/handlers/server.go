@@ -128,7 +128,7 @@ func (s *Server) setupRoutes() {
 
 		api.GET("/posts/:id/likes", postHandler.ListLikesByPostID)
 		api.GET("/posts", postHandler.ListAllPosts)
-		api.GET("/posts/summaries", postHandler.ListPostSummaries)
+		api.GET("/posts/:id/summaries", postHandler.ListPostSummaries)
 		api.GET("/posts/:id", postHandler.GetPostByID)
 
 		api.GET("/posts/:id/comments", commentHandler.ListCommentsByPostID)

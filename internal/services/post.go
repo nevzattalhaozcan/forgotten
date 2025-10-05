@@ -236,8 +236,8 @@ func (s *PostService) ListAllPosts() ([]models.PostResponse, error) {
 	return responses, nil
 }
 
-func (s *PostService) ListPostSummaries(limit, offset int) ([]models.PostSummary, error) {
-	posts, err := s.postRepo.ListPostSummaries(limit, offset)
+func (s *PostService) ListPostSummaries(clubID uint, limit, offset int) ([]models.PostSummary, error) {
+	posts, err := s.postRepo.ListPostSummaries(clubID, limit, offset)
 	if err != nil {
 		return nil, err
 	}

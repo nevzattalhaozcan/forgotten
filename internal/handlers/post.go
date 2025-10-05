@@ -253,22 +253,30 @@ func (h *PostHandler) ListAllPosts(c *gin.Context) {
 }
 
 // @Summary List post summaries
-// @Description Retrieve summaries of posts with pagination
+// @Description Retrieve summarized information about posts in a specific club
 // @Tags Posts
 // @Accept json
 // @Produce json
+// @Param id path int true "Club ID"
 // @Param limit query int false "Number of posts to retrieve" default(20)
 // @Param offset query int false "Number of posts to skip" default(0)
 // @Success 200 {array} models.PostSummary "Post summaries retrieved successfully"
 // @Failure 500 {object} models.ErrorResponse
 // @Router /posts/summaries [get]
 func (h *PostHandler) ListPostSummaries(c *gin.Context) {
+	clubIDParam := c.Param("id")
+	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		return
+	}
+
 	limitStr := c.DefaultQuery("limit", "20")
 	offsetStr := c.DefaultQuery("offset", "0")
 	limit, _ := strconv.Atoi(limitStr)
 	offset, _ := strconv.Atoi(offsetStr)
 
-	posts, err := h.postService.ListPostSummaries(limit, offset)
+	posts, err := h.postService.ListPostSummaries(uint(clubID), limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
