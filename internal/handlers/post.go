@@ -264,7 +264,7 @@ func (h *PostHandler) ListAllPosts(c *gin.Context) {
 // @Failure 500 {object} models.ErrorResponse
 // @Router /posts/summaries [get]
 func (h *PostHandler) ListPostSummaries(c *gin.Context) {
-	clubIDParam := c.Param("id")
+	clubIDParam := c.Param("club_id")
 	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
