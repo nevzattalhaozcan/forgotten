@@ -85,7 +85,9 @@ func (r *postRepository) ListPostSummaries(clubID uint, limit, offset int) ([]mo
 	type row struct {
 		ID            uint      `gorm:"column:id"`
 		Title         string    `gorm:"column:title"`
+		Content       string    `gorm:"column:content"`
 		Type          string    `gorm:"column:type"`
+		TypeData      string    `gorm:"column:type_data"`
 		IsPinned      bool      `gorm:"column:is_pinned"`
 		LikesCount    int       `gorm:"column:likes_count"`
 		CommentsCount int       `gorm:"column:comments_count"`
@@ -106,7 +108,7 @@ func (r *postRepository) ListPostSummaries(clubID uint, limit, offset int) ([]mo
 	var rows []row
 
 	err := r.db.Table("posts").
-		Select(`posts.id, posts.title, posts.type, posts.is_pinned, posts.likes_count, posts.comments_count, posts.views_count,
+		Select(`posts.id, posts.title, posts.content, posts.type, posts.type_data, posts.is_pinned, posts.likes_count, posts.comments_count, posts.views_count,
                 posts.user_id as post_user_id, posts.club_id as post_club_id, posts.created_at, posts.updated_at,
                 users.id as user_id, users.username as user_username, users.avatar_url as user_avatar_url,
                 clubs.id as club_id, clubs.name as club_name`).
@@ -126,7 +128,9 @@ func (r *postRepository) ListPostSummaries(clubID uint, limit, offset int) ([]mo
 		ps := models.PostSummary{
 			ID:            rrow.ID,
 			Title:         rrow.Title,
+			Content:       rrow.Content,
 			Type:          rrow.Type,
+			TypeData:      []byte(rrow.TypeData),
 			IsPinned:      rrow.IsPinned,
 			LikesCount:    rrow.LikesCount,
 			CommentsCount: rrow.CommentsCount,

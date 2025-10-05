@@ -124,7 +124,9 @@ type ClubSummary struct {
 type PostSummary struct {
 	ID            uint         `json:"id" gorm:"column:id"`
 	Title         string       `json:"title" gorm:"column:title"`
+	Content       string       `json:"content" gorm:"column:content"`
 	Type          string       `json:"type" gorm:"column:type"`
+	TypeData      PostTypeData `json:"type_data,omitempty" gorm:"type:jsonb"`
 	IsPinned      bool         `json:"is_pinned" gorm:"column:is_pinned"`
 	LikesCount    int          `json:"likes_count" gorm:"column:likes_count"`
 	CommentsCount int          `json:"comments_count" gorm:"column:comments_count"`
