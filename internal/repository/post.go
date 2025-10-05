@@ -73,6 +73,7 @@ func (r *postRepository) ListAll() ([]models.Post, error) {
 		Preload("User").
 		Preload("Comments").
 		Preload("Likes").
+		Preload("Likes.User").
 		Find(&posts).Error; err != nil {
 		return nil, err
 	}
