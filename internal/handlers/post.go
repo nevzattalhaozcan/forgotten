@@ -271,12 +271,24 @@ func (h *PostHandler) ListPostSummaries(c *gin.Context) {
 		return
 	}
 
+	useridRaw, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+
+	userID, ok := useridRaw.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID"})
+		return
+	}
+
 	limitStr := c.DefaultQuery("limit", "20")
 	offsetStr := c.DefaultQuery("offset", "0")
 	limit, _ := strconv.Atoi(limitStr)
 	offset, _ := strconv.Atoi(offsetStr)
 
-	posts, err := h.postService.ListPostSummaries(uint(clubID), limit, offset)
+	posts, err := h.postService.ListPostSummaries(uint(clubID), &userID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

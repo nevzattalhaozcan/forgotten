@@ -80,7 +80,7 @@ type PostRepository interface {
     GetPostsByType(postType string, limit, offset int) ([]models.Post, error)
     GetReviewPostsByBookID(bookID uint) ([]models.Post, error)
     GetPollPostsByClubID(clubID uint, includeExpired bool) ([]models.Post, error)
-	ListPostSummaries(clubID uint, limit, offset int) ([]models.PostSummary, error)
+	ListPostSummaries(clubID uint, userID *uint, limit, offset int) ([]models.PostSummary, error)
 }
 
 type CommentRepository interface {

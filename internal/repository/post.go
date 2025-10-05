@@ -81,7 +81,7 @@ func (r *postRepository) ListAll() ([]models.Post, error) {
 	return posts, nil
 }
 
-func (r *postRepository) ListPostSummaries(clubID uint, limit, offset int) ([]models.PostSummary, error) {
+func (r *postRepository) ListPostSummaries(clubID uint, userID *uint, limit, offset int) ([]models.PostSummary, error) {
 	type row struct {
 		ID            uint      `gorm:"column:id"`
 		Title         string    `gorm:"column:title"`
@@ -130,7 +130,7 @@ func (r *postRepository) ListPostSummaries(clubID uint, limit, offset int) ([]mo
 			Title:         rrow.Title,
 			Content:       rrow.Content,
 			Type:          rrow.Type,
-			TypeData:      []byte(rrow.TypeData),
+			TypeData:      models.PostTypeData(rrow.TypeData),
 			IsPinned:      rrow.IsPinned,
 			LikesCount:    rrow.LikesCount,
 			CommentsCount: rrow.CommentsCount,
@@ -139,6 +139,13 @@ func (r *postRepository) ListPostSummaries(clubID uint, limit, offset int) ([]mo
 			ClubID:        rrow.PostClubID,
 			CreatedAt:     rrow.CreatedAt,
 			UpdatedAt:     rrow.UpdatedAt,
+		}
+
+		if userID != nil {
+			hasLiked, err := r.HasUserLiked(*userID, rrow.ID)
+			if err == nil {
+				ps.HasUserLiked = hasLiked
+			}
 		}
 
 		if rrow.UserID != nil {

@@ -131,6 +131,7 @@ type PostSummary struct {
 	LikesCount    int          `json:"likes_count" gorm:"column:likes_count"`
 	CommentsCount int          `json:"comments_count" gorm:"column:comments_count"`
 	ViewsCount    int          `json:"views_count" gorm:"column:views_count"`
+	HasUserLiked  bool         `json:"has_user_liked,omitempty" gorm:"-"`
 	UserID        uint         `json:"user_id" gorm:"column:post_user_id"`
 	ClubID        *uint        `json:"club_id" gorm:"column:post_club_id"`
 	User          UserSummary  `json:"user"`
