@@ -262,9 +262,9 @@ func (h *PostHandler) ListAllPosts(c *gin.Context) {
 // @Param offset query int false "Number of posts to skip" default(0)
 // @Success 200 {array} models.PostSummary "Post summaries retrieved successfully"
 // @Failure 500 {object} models.ErrorResponse
-// @Router /posts/summaries [get]
+// @Router /clubs/{id}/posts/summaries [get]
 func (h *PostHandler) ListPostSummaries(c *gin.Context) {
-	clubIDParam := c.Param("club_id")
+	clubIDParam := c.Param("id")
 	clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
