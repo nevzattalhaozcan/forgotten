@@ -104,6 +104,29 @@ type UpdateUserRequest struct {
 	ReadingGoal    *int      `json:"reading_goal" validate:"omitempty,gte=0"`
 }
 
+type UpdatePasswordRequest struct {
+	Password    string `json:"password" validate:"required,min=6"`
+	NewPassword string `json:"new_password" validate:"required,min=6"`
+}
+
+type UpdateProfileRequest struct {
+	Bio            *string   `json:"bio,omitempty" validate:"omitempty"`
+	Location       *string   `json:"location,omitempty" validate:"omitempty,max=255"`
+	FavoriteGenres *[]string `json:"favorite_genres,omitempty"`
+	ReadingGoal    *int      `json:"reading_goal,omitempty" validate:"omitempty,gte=0"`
+}
+
+type UpdateAvatarRequest struct {
+	AvatarURL string `json:"avatar_url" validate:"required,url"`
+}
+
+type UpdateAccountRequest struct {
+	FirstName *string `json:"first_name,omitempty" validate:"omitempty,min=2,max=50"`
+	LastName  *string `json:"last_name,omitempty" validate:"omitempty,min=2,max=50"`
+	Email     *string `json:"email,omitempty" validate:"omitempty,email"`
+	Username  *string `json:"username,omitempty" validate:"omitempty,min=3,max=50"`
+}
+
 func (u *User) ToResponse() UserResponse {
 	return UserResponse{
 		ID:              u.ID,

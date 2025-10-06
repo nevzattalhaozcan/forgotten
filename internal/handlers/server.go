@@ -9,8 +9,8 @@ import (
 	"github.com/nevzattalhaozcan/forgotten/pkg/logger"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -149,6 +149,10 @@ func (s *Server) setupRoutes() {
 		protected.GET("/users", middleware.RestrictToRoles("admin", "superuser"), userHandler.GetAllUsers)
 		protected.PUT("/users/:id", middleware.AuthorizeSelf(), userHandler.UpdateUser)
 		protected.DELETE("/users/:id", middleware.AuthorizeSelf(), userHandler.DeleteUser)
+		protected.PATCH("/users/:id/password", userHandler.PatchPassword)
+		protected.PATCH("/users/:id/profile", userHandler.PatchProfile)
+		protected.PATCH("/users/:id/account", userHandler.PatchAccount)
+		protected.PATCH("/users/:id/avatar", userHandler.PatchAvatar)
 
 		protected.POST("/clubs", clubHandler.CreateClub)
 		protected.PUT("/clubs/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin"), clubHandler.UpdateClub)
@@ -159,7 +163,7 @@ func (s *Server) setupRoutes() {
 		protected.POST("/clubs/:id/leave", middleware.RequireClubMembership(clubRepo), clubHandler.LeaveClub)
 		protected.POST("/clubs/:id/ratings", middleware.RequireClubMembership(clubRepo), clubHandler.RateClub)
 		protected.GET("/my-clubs", clubHandler.GetMyClubs)
-		
+
 		protected.PUT("/clubs/:id/members/:user_id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), clubHandler.UpdateClubMember)
 		protected.GET("/clubs/:id/members/:user_id", clubHandler.GetClubMember)
 
@@ -184,7 +188,7 @@ func (s *Server) setupRoutes() {
 
 		protected.POST("/posts/:id/vote", middleware.RequireClubMembership(clubRepo), postHandler.VoteOnPoll)
 		protected.POST("/posts/:id/unvote", middleware.RequireClubMembership(clubRepo), postHandler.RemoveVoteFromPoll)
-		protected.GET("/posts/:id/poll/votes", middleware.RequireClubMembership(clubRepo), postHandler.GetUserPollVotes)	
+		protected.GET("/posts/:id/poll/votes", middleware.RequireClubMembership(clubRepo), postHandler.GetUserPollVotes)
 
 		protected.POST("/posts/:id/like", middleware.RequireClubMembership(clubRepo), postHandler.LikePost)
 		protected.POST("/posts/:id/unlike", middleware.RequireClubMembership(clubRepo), postHandler.UnlikePost)

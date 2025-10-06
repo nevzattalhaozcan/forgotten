@@ -227,3 +227,117 @@ func (s *UserService) DeleteUser(id uint) error {
 
 	return nil
 }
+
+func (s *UserService) UpdatePassword(id uint, req *models.UpdatePasswordRequest) error {
+	user, err := s.userRepo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("user not found")
+		}
+		return err
+	}
+
+	if !utils.CheckPasswordHash(req.Password, user.PasswordHash) {
+		return errors.New("current password is incorrect")
+	}
+
+	hashedPassword, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		return errors.New("failed to hash new password")
+	}
+
+	user.PasswordHash = hashedPassword
+	return s.userRepo.Update(user)
+}
+
+func (s *UserService) UpdateProfile(id uint, req *models.UpdateProfileRequest) (*models.UserResponse, error) {
+	user, err := s.userRepo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	if req.Bio != nil {
+		user.Bio = req.Bio
+	}
+
+	if req.Location != nil {
+		user.Location = req.Location
+	}
+
+	if req.FavoriteGenres != nil {
+		user.FavoriteGenres = *req.FavoriteGenres
+	}
+
+	if req.ReadingGoal != nil {
+		user.ReadingGoal = *req.ReadingGoal
+	}
+
+	if err := s.userRepo.Update(user); err != nil {
+		return nil, errors.New("failed to update profile")
+	}
+
+	response := user.ToResponse()
+	return &response, nil
+}
+
+func (s *UserService) UpdateAvatar(id uint, req *models.UpdateAvatarRequest) (*models.UserResponse, error) {
+	user, err := s.userRepo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	user.AvatarURL = &req.AvatarURL
+	if err := s.userRepo.Update(user); err != nil {
+		return nil, errors.New("failed to update avatar")
+	}
+
+	response := user.ToResponse()
+	return &response, nil
+}
+
+func (s *UserService) UpdateAccount(id uint, req *models.UpdateAccountRequest) (*models.UserResponse, error) {
+	user, err := s.userRepo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	if req.FirstName != nil {
+		user.FirstName = *req.FirstName
+	}
+
+	if req.LastName != nil {
+		user.LastName = *req.LastName
+	}
+
+	if req.Email != nil && *req.Email != user.Email {
+		existingUser, err := s.userRepo.GetByEmail(*req.Email)
+		if err == nil && existingUser.ID != user.ID {
+			return nil, errors.New("email already exists")
+		}
+		user.Email = *req.Email
+	}
+
+	if req.Username != nil && *req.Username != user.Username {
+		existingUser, err := s.userRepo.GetByUsername(*req.Username)
+		if err == nil && existingUser.ID != user.ID {
+			return nil, errors.New("username already exists")
+		}
+		user.Username = *req.Username
+	}
+
+	if err := s.userRepo.Update(user); err != nil {
+		return nil, errors.New("failed to update account")
+	}
+
+	response := user.ToResponse()
+	return &response, nil
+}

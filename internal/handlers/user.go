@@ -228,3 +228,102 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 
 	c.JSON(http.StatusNoContent, nil)
 }
+
+func (h *UserHandler) PatchPassword(c *gin.Context) {
+	var req models.UpdatePasswordRequest
+
+	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.userService.UpdatePassword(uint(id), &req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+}
+
+func (h *UserHandler) PatchProfile(c *gin.Context) {
+	var req models.UpdateUserRequest
+
+	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := h.userService.UpdateUser(uint(id), &req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "user updated successfully",
+		"user":    user,
+	})
+}
+
+func (h *UserHandler) PatchAvatar(c *gin.Context) {
+	var req models.UpdateAvatarRequest
+
+	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := h.userService.UpdateAvatar(uint(id), &req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "avatar updated successfully",
+		"user":    user,
+	})
+}
+
+func (h *UserHandler) PatchAccount(c *gin.Context) {
+	var req models.UpdateAccountRequest
+
+	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := h.userService.UpdateAccount(uint(id), &req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "account updated successfully",
+		"user":    user,
+	})
+}
