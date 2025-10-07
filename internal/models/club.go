@@ -38,6 +38,7 @@ type Club struct {
 	Name          string           `json:"name" gorm:"size:100;not null;unique"`
 	Description   string           `json:"description" gorm:"type:text"`
 	Location      *string          `json:"location" gorm:"size:255"`
+	MeetingType   *string          `json:"meeting_type" gorm:"size:50" default:"online"`
 	Genre         *string          `json:"genre" gorm:"size:100"`
 	CoverImageURL *string          `json:"cover_image_url" gorm:"type:text"`
 	IsPrivate     bool             `json:"is_private" gorm:"default:false"`
@@ -80,6 +81,7 @@ type CreateClubRequest struct {
 	Name          string         `json:"name" validate:"required,min=3,max=100"`
 	Description   string         `json:"description" validate:"max=1000"`
 	Location      *string        `json:"location" validate:"omitempty,max=255"`
+	MeetingType   *string        `json:"meeting_type" validate:"omitempty,oneof=online in-person hybrid"`
 	Genre         *string        `json:"genre" validate:"omitempty,max=100"`
 	CoverImageURL *string        `json:"cover_image_url" validate:"omitempty,url"`
 	IsPrivate     bool           `json:"is_private"`
@@ -91,6 +93,7 @@ type UpdateClubRequest struct {
 	Name          *string         `json:"name" validate:"omitempty,min=3,max=100"`
 	Description   *string         `json:"description" validate:"omitempty,max=1000"`
 	Location      *string         `json:"location" validate:"omitempty,max=255"`
+	MeetingType   *string         `json:"meeting_type" validate:"omitempty,oneof=online in-person hybrid"`
 	Genre         *string         `json:"genre" validate:"omitempty,max=100"`
 	CoverImageURL *string         `json:"cover_image_url" validate:"omitempty,url"`
 	IsPrivate     *bool           `json:"is_private"`
@@ -115,6 +118,16 @@ type OwnerLeaveRequest struct {
 	NewOwnerID *uint  `json:"new_owner_id,omitempty"`
 }
 
+type ClubFilterRequest struct {
+    Location      string `form:"location" validate:"omitempty,max=255"`
+    Genre         string `form:"genre" validate:"omitempty,max=100"`
+    MeetingType   string `form:"meeting_type" validate:"omitempty,oneof=online in-person hybrid"`
+    MinMembers    int    `form:"min_members" validate:"omitempty,gte=0"`
+    MaxMembers    int    `form:"max_members" validate:"omitempty,gte=0"`
+    Limit         int    `form:"limit" validate:"omitempty,gte=1,lte=100"`
+    Offset        int    `form:"offset" validate:"omitempty,gte=0"`
+}
+
 type ClubMembershipResponse struct {
 	ID         uint         `json:"id"`
 	UserID     uint         `json:"user_id"`
@@ -130,6 +143,7 @@ type ClubResponse struct {
 	Name          string           `json:"name"`
 	Description   string           `json:"description"`
 	Location      *string          `json:"location,omitempty"`
+	MeetingType   *string          `json:"meeting_type,omitempty"`
 	Genre         *string          `json:"genre,omitempty"`
 	CoverImageURL *string          `json:"cover_image_url,omitempty"`
 	IsPrivate     bool             `json:"is_private"`
@@ -172,6 +186,7 @@ func (c *Club) ToResponse() ClubResponse {
 		Name:          c.Name,
 		Description:   c.Description,
 		Location:      c.Location,
+		MeetingType:   c.MeetingType,
 		Genre:         c.Genre,
 		CoverImageURL: c.CoverImageURL,
 		IsPrivate:     c.IsPrivate,

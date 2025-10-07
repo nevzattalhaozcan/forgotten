@@ -20,6 +20,7 @@ type ClubRepository interface {
 	Update(club *models.Club) error
 	Delete(id uint) error
 	List(limit, offset int) ([]*models.Club, error)
+	ListWithFilters(location, genre, meetingType string, minMembers, maxMembers, limit, offset int) ([]*models.Club, error)
 	GetByName(name string) (*models.Club, error)
 	JoinClub(membership *models.ClubMembership) error
 	LeaveClub(clubID, userID uint) error

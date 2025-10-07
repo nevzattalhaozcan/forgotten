@@ -99,20 +99,58 @@ func (h *ClubHandler) GetClub(c *gin.Context) {
 }
 
 // @Summary Get all clubs
-// @Description Retrieve a list of all clubs
+// @Description Retrieve a list of all clubs with optional filters
 // @Tags Clubs
 // @Produce json
+// @Param location query string false "Filter by location (partial match)"
+// @Param genre query string false "Filter by genre (partial match)"
+// @Param meeting_type query string false "Filter by meeting type" Enums(online, in-person, hybrid)
+// @Param min_members query int false "Minimum member count"
+// @Param max_members query int false "Maximum member count"
+// @Param limit query int false "Number of results to return" default(20)
+// @Param offset query int false "Number of results to skip" default(0)
 // @Success 200 {object} map[string]interface{} "Clubs retrieved successfully"
+// @Failure 400 {object} map[string]string "Bad request - invalid filter parameters"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/clubs [get]
 func (h *ClubHandler) GetAllClubs(c *gin.Context) {
-	clubs, err := h.clubService.GetAllClubs()
+	location := c.Query("location")
+	genre := c.Query("genre")
+	meetingType := c.Query("meeting_type")
+	minMembers, _ := strconv.Atoi(c.DefaultQuery("min_members", "0"))
+	maxMembers, _ := strconv.Atoi(c.DefaultQuery("max_members", "0"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	hasFilters := location != "" || genre != "" || meetingType != "" || minMembers > 0 || maxMembers > 0
+
+	if !hasFilters {
+		clubs, err := h.clubService.GetAllClubs()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve clubs"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"clubs": clubs})
+		return
+	}
+
+	if meetingType != "" && meetingType != "online" && meetingType != "in-person" && meetingType != "hybrid" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "meeting_type must be one of: online, in-person, hybrid"})
+		return
+	}
+
+	clubs, err := h.clubService.GetClubsWithFilters(location, genre, meetingType, minMembers, maxMembers, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve clubs"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"clubs": clubs})
+	c.JSON(http.StatusOK, gin.H{
+		"clubs":  clubs,
+		"count":  len(clubs),
+		"limit":  limit,
+		"offset": offset,
+	})
 }
 
 // @Summary Update club
@@ -194,9 +232,9 @@ func (h *ClubHandler) DeleteClub(c *gin.Context) {
 	}
 
 	if _, err := h.clubService.GetClubByID(uint(id)); err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "club not found"})
-        return
-    }
+		c.JSON(http.StatusNotFound, gin.H{"error": "club not found"})
+		return
+	}
 
 	uidRaw, ok := c.Get("user_id")
 	if !ok {
@@ -307,12 +345,12 @@ func (h *ClubHandler) LeaveClub(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		case "owner must choose action: transfer or close",
-            "new_owner_id is required for transfer",
-            "only the owner can transfer ownership",
-            "new owner must be different from current owner",
-            "new owner must be a member of the club",
-            "new owner must be an approved member",
-            "invalid action; must be one of: transfer, close":
+			"new_owner_id is required for transfer",
+			"only the owner can transfer ownership",
+			"new owner must be different from current owner",
+			"new owner must be a member of the club",
+			"new owner must be an approved member",
+			"invalid action; must be one of: transfer, close":
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		default:

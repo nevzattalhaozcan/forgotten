@@ -83,6 +83,47 @@ func (r *clubRepository) List(limit, offset int) ([]*models.Club, error) {
 	return clubs, nil
 }
 
+func (r *clubRepository) ListWithFilters(location, genre, meetingType string, minMembers, maxMembers, limit, offset int) ([]*models.Club, error) {
+    var clubs []*models.Club
+    query := r.db.Model(&models.Club{}).Preload("Owner")
+
+    if location != "" {
+        query = query.Where("LOWER(location) LIKE LOWER(?)", "%"+location+"%")
+    }
+
+    if genre != "" {
+        query = query.Where("LOWER(genre) LIKE LOWER(?)", "%"+genre+"%")
+    }
+
+    if meetingType != "" {
+        query = query.Where("meeting_type = ?", meetingType)
+    }
+
+    if minMembers > 0 {
+        query = query.Where("members_count >= ?", minMembers)
+    }
+
+    if maxMembers > 0 {
+        query = query.Where("members_count <= ?", maxMembers)
+    }
+
+    if limit <= 0 {
+        limit = 20
+    }
+    query = query.Limit(limit).Offset(offset)
+
+    err := query.Order("created_at DESC").Find(&clubs).Error
+    if err != nil {
+        return nil, err
+    }
+
+    if len(clubs) == 0 {
+        return []*models.Club{}, nil
+    }
+
+    return clubs, nil
+}
+
 func (r *clubRepository) JoinClub(membership *models.ClubMembership) error {
 	return r.db.Create(membership).Error
 }

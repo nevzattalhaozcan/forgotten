@@ -527,3 +527,18 @@ func (s *ClubService) ListUserClubs(userID uint) ([]models.ClubResponse, error) 
 	}
 	return responses, nil
 }
+
+func (s *ClubService) GetClubsWithFilters(location, genre, meetingType string, minMembers, maxMembers, limit, offset int) ([]*models.ClubResponse, error) {
+    clubs, err := s.clubRepo.ListWithFilters(location, genre, meetingType, minMembers, maxMembers, limit, offset)
+    if err != nil {
+        return nil, err
+    }
+
+    var responses []*models.ClubResponse
+    for _, club := range clubs {
+        resp := club.ToResponse()
+        responses = append(responses, &resp)
+    }
+
+    return responses, nil
+}
