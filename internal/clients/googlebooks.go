@@ -103,8 +103,8 @@ func (c *GoogleBooksClient) Search(query string, limit int, tr bool) ([]*models.
 		var year *int
 		if len(vi.PublishedDate) >= 4 {
 			y := 0
-			fmt.Sscanf(vi.PublishedDate[:4], "%d", &y)
-			if y > 0 {
+			_, err := fmt.Sscanf(vi.PublishedDate[:4], "%d", &y)
+			if err == nil && y > 0 {
 				year = &y
 			}
 		}
