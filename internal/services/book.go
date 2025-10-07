@@ -2,6 +2,8 @@ package services
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/nevzattalhaozcan/forgotten/internal/clients"
@@ -12,16 +14,16 @@ import (
 )
 
 type BookService struct {
-	bookRepo repository.BookRepository
-	olClient *clients.OpenLibraryClient
-	config   *config.Config
+	bookRepo   repository.BookRepository
+	bookClient clients.BookAPIClient
+	config     *config.Config
 }
 
-func NewBookService(bookRepo repository.BookRepository, olClient *clients.OpenLibraryClient, config *config.Config) *BookService {
+func NewBookService(bookRepo repository.BookRepository, bookClient clients.BookAPIClient, config *config.Config) *BookService {
 	return &BookService{
-		bookRepo: bookRepo,
-		olClient: olClient,
-		config:   config,
+		bookRepo:   bookRepo,
+		bookClient: bookClient,
+		config:     config,
 	}
 }
 
@@ -130,7 +132,7 @@ func (s *BookService) ListBooks() ([]*models.BookResponse, error) {
 	return responses, nil
 }
 
-// source: "local", "external", "all"
+// multi-source search with caching
 func (s *BookService) SearchBooks(query string, limit int, source string) ([]models.BookResponse, error) {
 	limitArg := limit
 	if limitArg <= 0 {
@@ -138,10 +140,14 @@ func (s *BookService) SearchBooks(query string, limit int, source string) ([]mod
 	}
 
 	var responses []models.BookResponse
+	seen := make(map[string]bool)
+
 	if source == "local" || source == "all" {
 		local, err := s.bookRepo.SearchLocal(query, limitArg)
 		if err == nil {
 			for _, b := range local {
+				key := getBookKey(b)
+				seen[key] = true
 				responses = append(responses, b.ToResponse())
 			}
 			if source == "local" {
@@ -151,9 +157,27 @@ func (s *BookService) SearchBooks(query string, limit int, source string) ([]mod
 	}
 
 	if source == "external" || source == "all" {
-		exts, err := s.olClient.Search(query, limitArg)
-		if err == nil {
+		exts, err := s.bookClient.SearchMerged(query, limitArg)
+		if err != nil {
+			exts, err = s.bookClient.Search(query, limitArg)
+		}
+
+		if err != nil {
+			if source == "external" {
+				return nil, fmt.Errorf("external book search error: %w", err)
+			}
+			log.Printf("external book search error: %v", err)
+		} else {
 			for _, eb := range exts {
+				if len(responses) >= limitArg {
+					break
+				}
+
+				key := getExternalBookKey(eb)
+				if seen[key] {
+					continue
+				}
+
 				var local *models.Book
 				if eb.ISBN != nil {
 					if b, err := s.bookRepo.GetByISBN(*eb.ISBN); err == nil {
@@ -167,19 +191,45 @@ func (s *BookService) SearchBooks(query string, limit int, source string) ([]mod
 				}
 
 				if local != nil {
-					now := time.Now()
-					local.LastAccessed = &now
-					_ = s.bookRepo.Update(local)
-					responses = append(responses, local.ToResponse())
+					if !seen[getBookKey(local)] {
+						now := time.Now()
+						local.LastAccessed = &now
+						if err := s.bookRepo.Update(local); err != nil {
+							log.Printf("warning: failed to update last_accessed for book %d: %v", local.ID, err)
+						}
+						responses = append(responses, local.ToResponse())
+						seen[getBookKey(local)] = true
+					}
 					continue
 				}
 
 				book := eb.ToBook()
-				_ = s.bookRepo.UpsertByExternalID(book)
+				if err := s.bookRepo.UpsertByExternalID(book); err != nil {
+					log.Printf("failed to cache external book %s as id=%d: %v", book.Title, book.ID, err)
+				}
 				responses = append(responses, book.ToResponse())
+				seen[key] = true
 			}
 		}
 	}
 
 	return responses, nil
+}
+
+func getBookKey(b *models.Book) string {
+	if b.ISBN != nil && *b.ISBN != "" {
+		return "isbn:" + *b.ISBN
+	}
+
+	if b.ExternalID != nil && *b.ExternalID != "" {
+		return "ext:" + *b.ExternalID
+	}
+	return fmt.Sprintf("id:%d", b.ID)
+}
+
+func getExternalBookKey(eb *models.ExternalBook) string {
+	if eb.ISBN != nil && *eb.ISBN != "" {
+		return "isbn:" + *eb.ISBN
+	}
+	return "ext:" + eb.ExternalID
 }

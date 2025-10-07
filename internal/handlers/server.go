@@ -59,7 +59,7 @@ func (s *Server) setupRoutes() {
 	var clubRepo repository.ClubRepository = repository.NewClubRepository(s.db)
 	var eventRepo repository.EventRepository = repository.NewEventRepository(s.db)
 	var bookRepo repository.BookRepository = repository.NewBookRepository(s.db)
-	var olClient clients.OpenLibraryClient = *clients.NewOpenLibraryClient()
+	var bookClient clients.BookAPIClient = clients.NewMultiSourceClient(s.config.BookAPIs.GoogleBooksAPIKey, s.config.BookAPIs.PreferredSource)
 	var postRepo repository.PostRepository = repository.NewPostRepository(s.db)
 	var commentRepo repository.CommentRepository = repository.NewCommentRepository(s.db)
 	var readingRepo repository.ReadingRepository = repository.NewReadingRepository(s.db)
@@ -95,7 +95,7 @@ func (s *Server) setupRoutes() {
 	eventService := services.NewEventService(eventRepo, clubRepo, s.config)
 	eventHandler := NewEventHandler(eventService)
 
-	bookService := services.NewBookService(bookRepo, &olClient, s.config)
+	bookService := services.NewBookService(bookRepo, bookClient, s.config)
 	bookHandler := NewBookHandler(bookService)
 
 	postService := services.NewPostService(postRepo, userRepo, clubRepo, bookRepo, s.db, s.config)

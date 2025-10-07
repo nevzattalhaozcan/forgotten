@@ -34,7 +34,9 @@ type olSearchResponse struct {
 }
 
 func (c *OpenLibraryClient) Search(query string, limit int) ([]*models.ExternalBook, error) {
-	u := fmt.Sprintf("%s/search.json?q=%s&limit=%d", c.BaseURL, url.QueryEscape(query), limit)
+	u := fmt.Sprintf("%s/search.json?q=%s&language=tur&limit=%d",
+		c.BaseURL, url.QueryEscape(query),
+		limit)
 	resp, err := c.Client.Get(u)
 	if err != nil {
 		return nil, err

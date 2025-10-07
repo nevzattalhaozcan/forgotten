@@ -14,6 +14,13 @@ type Config struct {
 	JWT JWTConfig
 	App AppConfig
 	Redis RedisConfig
+	BookAPIs BookAPIsConfig
+}
+
+type BookAPIsConfig struct {
+	GoogleBooksAPIKey string
+	ISBNDBAPIKey      string
+	PreferredSource   string // "google", "isbndb", "openlibrary"
 }
 
 type ServerConfig struct {
@@ -87,6 +94,11 @@ func Load() *Config {
 			DB: getEnvAsInt("REDIS_DB", 0),
 			TLS: getEnvAsBool("REDIS_TLS", false),
 			CacheTTLSeconds: getEnvAsInt("REDIS_CACHE_TTL_SECONDS", 600),
+		},
+		BookAPIs: BookAPIsConfig{
+			GoogleBooksAPIKey: getEnv("GOOGLE_BOOKS_API_KEY", ""),
+			ISBNDBAPIKey:      getEnv("ISBNDB_API_KEY", ""),
+			PreferredSource:   getEnv("BOOK_API_SOURCE", "google"),
 		},
 	}
 }

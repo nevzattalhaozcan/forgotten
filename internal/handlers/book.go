@@ -179,6 +179,17 @@ func (h *BookHandler) ListBooks(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"books": books})
 }
 
+// @Summary Search for books
+// @Description Search for books using an external API
+// @Tags Books
+// @Produce json
+// @Param q query string true "Search query"
+// @Param limit query int false "Number of results to return" default(20)
+// @Param source query string false "Source to search (google, isbndb, openlibrary)" default(all)
+// @Success 200 {object} map[string]interface{} "Search results"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/books/search [get]
 func (h *BookHandler) Search(c *gin.Context) {
 	query := c.Query("q")
 	if query == "" {
