@@ -62,6 +62,7 @@ func (s *ClubService) CreateClub(ownerID uint, req *models.CreateClubRequest) (*
 		Name:          req.Name,
 		Description:   req.Description,
 		Location:      req.Location,
+		MeetingType:   req.MeetingType,
 		Genre:         req.Genre,
 		CoverImageURL: req.CoverImageURL,
 		IsPrivate:     req.IsPrivate,
@@ -162,6 +163,9 @@ func (s *ClubService) UpdateClub(id uint, req *models.UpdateClubRequest) (*model
 	}
 	if req.Location != nil {
 		club.Location = req.Location
+	}
+	if req.MeetingType != nil {
+		club.MeetingType = req.MeetingType
 	}
 	if req.Genre != nil {
 		club.Genre = req.Genre
