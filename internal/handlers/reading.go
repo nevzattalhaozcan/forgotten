@@ -88,6 +88,28 @@ func (h *ReadingHandler) UpdateProgress(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// @Summary Get Reading Progress
+// @Description Retrieve the current reading progress of a book.
+// @Tags Reading
+// @Produce json
+// @Param id path int true "User ID"
+// @Param bookID path int true "Book ID"
+// @Success 200 {object} models.UserBookProgressResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Router /users/{id}/readings/{bookID} [get]
+// @Security Bearer
+func (h *ReadingHandler) GetProgress(c *gin.Context) {
+	userID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	bookID, _ := strconv.ParseUint(c.Param("bookID"), 10, 64)
+
+	resp, err := h.readingService.GetUserBookProgress(uint(userID), uint(bookID))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
 // @Summary Complete Reading a Book
 // @Description Mark a book as completed and optionally add a note.
 // @Tags Reading

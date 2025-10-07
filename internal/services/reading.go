@@ -103,6 +103,23 @@ func (s *ReadingService) UpdateProgress(userID, bookID uint, req *models.UpdateR
 	return &resp, nil
 }
 
+func (s *ReadingService) GetUserBookProgress(userID, bookID uint) (*models.UserBookProgressResponse, error) {
+	book, err := s.bookRepo.GetByID(bookID)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := s.readRepo.GetUserBookProgress(userID, bookID)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.New("reading not started")
+	} else if err != nil {
+		return nil, err
+	}
+
+	resp := p.ToResponse(book)
+	return &resp, nil
+}
+
 func (s *ReadingService) CompleteReading(userID, bookID uint, note *string) (*models.UserBookProgressResponse, error) {
 	book, err := s.bookRepo.GetByID(bookID)
 	if err != nil {

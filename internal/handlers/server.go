@@ -204,6 +204,7 @@ func (s *Server) setupRoutes() {
 		protected.POST("/users/:id/reading/start", middleware.AuthorizeSelf(), readingHandler.StartReading)
 		protected.PATCH("/users/:id/reading/:bookID/progress", middleware.AuthorizeSelf(), readingHandler.UpdateProgress)
 		protected.POST("/users/:id/reading/:bookID/complete", middleware.AuthorizeSelf(), readingHandler.CompleteReading)
+		protected.GET("/users/:id/readings/:bookID/progress", middleware.AuthorizeSelf(), readingHandler.GetProgress)
 		protected.GET("/users/:id/reading", middleware.AuthorizeSelf(), readingHandler.ListUserProgress)
 		protected.GET("/users/:id/reading/history", readingHandler.UserReadingHistory)
 
