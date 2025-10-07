@@ -12,13 +12,13 @@ import (
 
 type UserHandler struct {
 	userService *services.UserService
-	validator *validator.Validate
+	validator   *validator.Validate
 }
 
 func NewUserHandler(userService *services.UserService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
-		validator: validator.New(),
+		validator:   validator.New(),
 	}
 }
 
@@ -81,7 +81,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "login successful",
 		"token":   token,
@@ -229,6 +229,19 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
+// @Summary Update User Password
+// @Description Update the password of a user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param request body models.UpdatePasswordRequest true "Update Password Request"
+// @Success 200 {object} models.SuccessResponse "Password updated successfully"
+// @Failure 400 {object} models.ErrorResponse "Bad request"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Security Bearer
+// @Router /api/v1/users/{id}/password [patch]
 func (h *UserHandler) PatchPassword(c *gin.Context) {
 	var req models.UpdatePasswordRequest
 
@@ -250,6 +263,19 @@ func (h *UserHandler) PatchPassword(c *gin.Context) {
 	}
 }
 
+// @Summary Update User Profile
+// @Description Update the profile information of a user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param request body models.UpdateProfileRequest true "Update Profile Request"
+// @Success 200 {object} models.UserResponse "Profile updated successfully"
+// @Failure 400 {object} models.ErrorResponse "Bad request"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Security Bearer
+// @Router /api/v1/users/{id}/profile [patch]
 func (h *UserHandler) PatchProfile(c *gin.Context) {
 	var req models.UpdateUserRequest
 
@@ -276,6 +302,19 @@ func (h *UserHandler) PatchProfile(c *gin.Context) {
 	})
 }
 
+// @Summary Update User Avatar
+// @Description Update the avatar of a user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param request body models.UpdateAvatarRequest true "Update Avatar Request"
+// @Success 200 {object} models.UserResponse "Avatar updated successfully"
+// @Failure 400 {object} models.ErrorResponse "Bad request"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Security Bearer
+// @Router /api/v1/users/{id}/avatar [patch]
 func (h *UserHandler) PatchAvatar(c *gin.Context) {
 	var req models.UpdateAvatarRequest
 
@@ -302,6 +341,19 @@ func (h *UserHandler) PatchAvatar(c *gin.Context) {
 	})
 }
 
+// @Summary Update User Account
+// @Description Update the account information of a user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param request body models.UpdateAccountRequest true "Update Account Request"
+// @Success 200 {object} models.UserResponse "Profile updated successfully"
+// @Failure 400 {object} models.ErrorResponse "Bad request"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Security Bearer
+// @Router /api/v1/users/{id}/account [patch]
 func (h *UserHandler) PatchAccount(c *gin.Context) {
 	var req models.UpdateAccountRequest
 

@@ -19,18 +19,32 @@ definitions:
     properties:
       author:
         type: string
+      cached_at:
+        description: Cache management
+        type: string
       cover_url:
         type: string
       created_at:
         type: string
       description:
         type: string
+      external_id:
+        description: External API fields
+        type: string
       genre:
         type: string
       id:
         type: integer
+      is_club_favorite:
+        type: boolean
+      is_trending:
+        type: boolean
       isbn:
         type: string
+      last_accessed:
+        type: string
+      local_rating:
+        type: number
       pages:
         type: integer
       published_year:
@@ -39,7 +53,15 @@ definitions:
         maximum: 5
         minimum: 0
         type: number
+      rating_count:
+        type: integer
+      read_count:
+        description: Platform-specific analytics (simplified)
+        type: integer
+      source:
+        type: string
       title:
+        description: Book metadata
         type: string
       updated_at:
         type: string
@@ -63,6 +85,13 @@ definitions:
       target_page:
         type: integer
     type: object
+  models.ClubSummary:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   models.CompleteReadingRequest:
     properties:
       note:
@@ -80,6 +109,8 @@ definitions:
       description:
         minLength: 1
         type: string
+      external_id:
+        type: string
       genre:
         maxLength: 100
         minLength: 1
@@ -93,6 +124,8 @@ definitions:
         maximum: 2100
         minimum: 0
         type: integer
+      source:
+        type: string
       title:
         maxLength: 255
         minLength: 1
@@ -183,11 +216,12 @@ definitions:
         enum:
         - discussion
         - announcement
-        - event
+        - post
         - poll
         - review
         - annotation
         type: string
+      type_data: {}
     required:
     - club_id
     - content
@@ -240,6 +274,16 @@ definitions:
       topic:
         type: string
     type: object
+  models.PollVoteRequest:
+    properties:
+      option_ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - option_ids
+    type: object
   models.Post:
     properties:
       club_id:
@@ -263,11 +307,13 @@ definitions:
         enum:
         - discussion
         - announcement
-        - event
+        - post
         - poll
         - review
         - annotation
         type: string
+      type_data:
+        type: object
       updated_at:
         type: string
       user_id:
@@ -285,6 +331,74 @@ definitions:
         type: integer
       user:
         $ref: '#/definitions/models.UserResponse'
+    type: object
+  models.PostResponse:
+    properties:
+      club_id:
+        type: integer
+      comments_count:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_pinned:
+        type: boolean
+      likes_count:
+        type: integer
+      title:
+        type: string
+      type:
+        type: string
+      type_data: {}
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+      user_voted:
+        type: boolean
+      user_votes:
+        items:
+          type: string
+        type: array
+      views_count:
+        type: integer
+    type: object
+  models.PostSummary:
+    properties:
+      club:
+        $ref: '#/definitions/models.ClubSummary'
+      club_id:
+        type: integer
+      comments_count:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      has_user_liked:
+        type: boolean
+      id:
+        type: integer
+      is_pinned:
+        type: boolean
+      likes_count:
+        type: integer
+      title:
+        type: string
+      type:
+        type: string
+      type_data: {}
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.UserSummary'
+      user_id:
+        type: integer
+      views_count:
+        type: integer
     type: object
   models.RSVPRequest:
     properties:
@@ -403,6 +517,30 @@ definitions:
       message:
         type: string
     type: object
+  models.UpdateAccountRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    type: object
+  models.UpdateAvatarRequest:
+    properties:
+      avatar_url:
+        type: string
+    required:
+    - avatar_url
+    type: object
   models.UpdateBookRequest:
     properties:
       author:
@@ -519,6 +657,18 @@ definitions:
       title:
         type: string
     type: object
+  models.UpdatePasswordRequest:
+    properties:
+      new_password:
+        minLength: 6
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - new_password
+    - password
+    type: object
   models.UpdatePostRequest:
     properties:
       club_id:
@@ -536,11 +686,27 @@ definitions:
         enum:
         - discussion
         - announcement
-        - event
+        - post
         - poll
         - review
         - annotation
         type: string
+      type_data: {}
+    type: object
+  models.UpdateProfileRequest:
+    properties:
+      bio:
+        type: string
+      favorite_genres:
+        items:
+          type: string
+        type: array
+      location:
+        maxLength: 255
+        type: string
+      reading_goal:
+        minimum: 0
+        type: integer
     type: object
   models.UpdateReadingProgressRequest:
     properties:
@@ -672,6 +838,15 @@ definitions:
         type: integer
       role:
         type: string
+      username:
+        type: string
+    type: object
+  models.UserSummary:
+    properties:
+      avatar_url:
+        type: string
+      id:
+        type: integer
       username:
         type: string
     type: object
@@ -1766,6 +1941,170 @@ paths:
       summary: Update user
       tags:
       - Users
+  /api/v1/users/{id}/account:
+    patch:
+      consumes:
+      - application/json
+      description: Update the account information of a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Account Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update User Account
+      tags:
+      - Users
+  /api/v1/users/{id}/avatar:
+    patch:
+      consumes:
+      - application/json
+      description: Update the avatar of a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Avatar Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateAvatarRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar updated successfully
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update User Avatar
+      tags:
+      - Users
+  /api/v1/users/{id}/password:
+    patch:
+      consumes:
+      - application/json
+      description: Update the password of a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password updated successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update User Password
+      tags:
+      - Users
+  /api/v1/users/{id}/profile:
+    patch:
+      consumes:
+      - application/json
+      description: Update the profile information of a user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Profile Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update User Profile
+      tags:
+      - Users
   /api/v1/users/my-clubs:
     get:
       description: Retrieve a list of clubs the authenticated user is a member of
@@ -1822,6 +2161,79 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: List posts by club ID
+      tags:
+      - Posts
+  /clubs/{id}/posts/polls:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all poll posts associated with a specific club
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Include expired polls
+        in: query
+        name: include_expired
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Poll posts retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.Post'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get poll posts by club ID
+      tags:
+      - Posts
+  /clubs/{id}/posts/summaries:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve summarized information about posts in a specific club
+      parameters:
+      - description: Club ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 20
+        description: Number of posts to retrieve
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of posts to skip
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post summaries retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.PostSummary'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List post summaries
       tags:
       - Posts
   /clubs/{id}/reading:
@@ -2524,6 +2936,41 @@ paths:
       summary: List likes by post ID
       tags:
       - Posts
+  /posts/{id}/poll/votes:
+    get:
+      description: Retrieve the poll votes made by the authenticated user for a specific
+        poll post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User poll votes retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get user poll votes
+      tags:
+      - Posts
   /posts/{id}/unlike:
     post:
       consumes:
@@ -2563,6 +3010,127 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Unlike a post
+      tags:
+      - Posts
+  /posts/{id}/unvote:
+    post:
+      consumes:
+      - application/json
+      description: Remove a user's vote from a poll post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Vote data
+        in: body
+        name: vote
+        required: true
+        schema:
+          $ref: '#/definitions/models.PollVoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vote removed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Remove vote from poll
+      tags:
+      - Posts
+  /posts/{id}/vote:
+    post:
+      consumes:
+      - application/json
+      description: Vote on a poll post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Vote data
+        in: body
+        name: vote
+        required: true
+        schema:
+          $ref: '#/definitions/models.PollVoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vote recorded successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Post not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Vote on a poll
+      tags:
+      - Posts
+  /posts/by-type:
+    get:
+      description: Get posts filtered by type with pagination
+      parameters:
+      - description: Post type (e.g., 'announcement', 'discussion', 'poll', 'review')
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: Number of posts to return
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Number of posts to skip
+        in: query
+        name: offset
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Posts retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.PostResponse'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get posts by type
       tags:
       - Posts
   /posts/popular:
@@ -2605,6 +3173,27 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: List public posts
+      tags:
+      - Posts
+  /posts/reviews:
+    get:
+      description: Get all review posts for a specific book
+      parameters:
+      - description: Book ID
+        in: query
+        name: book_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reviews retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/models.PostResponse'
+            type: array
+      summary: Get reviews by book
       tags:
       - Posts
   /users/{id}/comments:

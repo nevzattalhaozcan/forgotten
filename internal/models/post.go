@@ -14,7 +14,7 @@ type Post struct {
 	Title         string       `json:"title" gorm:"size:255;not null"`
 	Content       string       `json:"content" gorm:"type:text;not null"`
 	Type          string       `json:"type" gorm:"not null" validate:"required,oneof=discussion announcement post poll review annotation" default:"discussion"`
-	TypeData      PostTypeData `json:"type_data,omitempty" gorm:"type:jsonb"`
+	TypeData      PostTypeData `json:"type_data,omitempty" gorm:"type:jsonb" swaggertype:"object"`
 	IsPinned      bool         `json:"is_pinned" gorm:"default:false"`
 	LikesCount    int          `json:"likes_count" gorm:"default:0"`
 	CommentsCount int          `json:"comments_count" gorm:"default:0"`
@@ -126,7 +126,7 @@ type PostSummary struct {
 	Title         string       `json:"title" gorm:"column:title"`
 	Content       string       `json:"content" gorm:"column:content"`
 	Type          string       `json:"type" gorm:"column:type"`
-	TypeData      interface{} `json:"type_data,omitempty"`
+	TypeData      interface{}  `json:"type_data,omitempty"`
 	IsPinned      bool         `json:"is_pinned" gorm:"column:is_pinned"`
 	LikesCount    int          `json:"likes_count" gorm:"column:likes_count"`
 	CommentsCount int          `json:"comments_count" gorm:"column:comments_count"`
