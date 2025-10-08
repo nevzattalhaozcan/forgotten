@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"time"
 
 	_ "github.com/nevzattalhaozcan/forgotten/docs" // swag doc import
 	"github.com/nevzattalhaozcan/forgotten/pkg/cache"
+	searchCache "github.com/nevzattalhaozcan/forgotten/internal/cache"
 	"github.com/nevzattalhaozcan/forgotten/pkg/logger"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
@@ -107,6 +110,18 @@ func (s *Server) setupRoutes() {
 	readingService := services.NewReadingService(s.config, userRepo, bookRepo, clubRepo, readingRepo, clubReadingRepo)
 	readingHandler := NewReadingHandler(readingService)
 
+	locationService, err := services.NewLocationService()
+    if err != nil {
+        log.Fatal("Failed to initialize location service:", err)
+    }
+
+	var locationCache *searchCache.LocationCache
+	if redisURL := os.Getenv("REDIS_URL"); redisURL != "" {
+		locationCache = searchCache.NewLocationCache(redisURL, locationService)
+	}
+
+	locationHandler := NewLocationHandler(locationService, locationCache)
+
 	if s.config.Server.Environment != "production" {
 		s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		s.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
@@ -139,6 +154,7 @@ func (s *Server) setupRoutes() {
 		api.GET("/comments/:id/likes", commentHandler.ListLikesByCommentID)
 
 		api.GET("/events/public", eventHandler.GetPublicEvents)
+		api.GET("/locations/search", locationHandler.SearchLocations)
 	}
 
 	protected := api.Group("/")
