@@ -404,3 +404,28 @@ func (s *UserService) UpdateAccount(id uint, req *models.UpdateAccountRequest) (
 	response := user.ToResponse()
 	return &response, nil
 }
+
+func (s *UserService) UpdatePreferences(userID uint, req *models.UpdatePreferencesRequest) (*models.UserResponse, error) {
+    user, err := s.userRepo.GetByID(userID)
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, errors.New("user not found")
+        }
+        return nil, err
+    }
+
+    if len(user.Preferences) == 0 {
+        user.Preferences = models.DefaultUserPreferences()
+    }
+
+    for key, value := range req.Preferences {
+        user.Preferences[key] = value
+    }
+
+    if err := s.userRepo.Update(user); err != nil {
+        return nil, errors.New("failed to update preferences")
+    }
+
+    response := user.ToResponse()
+    return &response, nil
+}

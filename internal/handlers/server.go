@@ -171,6 +171,7 @@ func (s *Server) setupRoutes() {
 		protected.PATCH("/users/:id/profile", userHandler.PatchProfile)
 		protected.PATCH("/users/:id/account", userHandler.PatchAccount)
 		protected.PATCH("/users/:id/avatar", userHandler.PatchAvatar)
+		protected.PATCH("/user/preferences", userHandler.UpdatePreferences)
 
 		protected.POST("/clubs", clubHandler.CreateClub)
 		protected.PUT("/clubs/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin"), clubHandler.UpdateClub)

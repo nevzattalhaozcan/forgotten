@@ -453,3 +453,44 @@ func (h *UserHandler) SearchUsers(c *gin.Context) {
         "query": query,
     })
 }
+
+// @Summary Update user preferences
+// @Description Update user preferences including privacy settings and app preferences
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param request body models.UpdatePreferencesRequest true "Preferences data"
+// @Success 200 {object} map[string]interface{} "Preferences updated successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Security Bearer
+// @Router /api/v1/user/preferences [patch]
+func (h *UserHandler) UpdatePreferences(c *gin.Context) {
+    userID, exists := c.Get("user_id")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found in context"})
+        return
+    }
+
+    var req models.UpdatePreferencesRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    if err := h.validator.Struct(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    user, err := h.userService.UpdatePreferences(userID.(uint), &req)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "preferences updated successfully",
+        "user":    user,
+    })
+}

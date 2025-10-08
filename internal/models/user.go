@@ -7,6 +7,57 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserPreferences map[string]interface{}
+
+const (
+	PREF_SHOW_LOCATION  = "privacy.show_location"
+	PREF_SHOW_LAST_SEEN = "privacy.show_last_seen"
+	PREF_ALLOW_SEARCH   = "privacy.allow_search"
+
+	PREF_LANGUAGE            = "app.language"
+	PREF_THEME               = "app.theme"
+	PREF_TIMEZONE            = "app.timezone"
+	PREF_NOTIFICATIONS       = "notifications.enabled"
+	PREF_EMAIL_NOTIFICATIONS = "notifications.email"
+	PREF_PUSH_NOTIFICATIONS  = "notifications.push"
+)
+
+func DefaultUserPreferences() UserPreferences {
+	return UserPreferences{
+		PREF_SHOW_LOCATION:       true,
+		PREF_SHOW_LAST_SEEN:      true,
+		PREF_ALLOW_SEARCH:        true,
+		PREF_LANGUAGE:            "tr",
+		PREF_THEME:               "auto",
+		PREF_TIMEZONE:            "Europe/Istanbul",
+		PREF_NOTIFICATIONS:       true,
+		PREF_EMAIL_NOTIFICATIONS: false,
+		PREF_PUSH_NOTIFICATIONS:  true,
+	}
+}
+
+func (up UserPreferences) GetBool(key string, defaultVal bool) bool {
+	if val, exists := up[key]; exists {
+		if boolVal, ok := val.(bool); ok {
+			return boolVal
+		}
+	}
+	return defaultVal
+}
+
+func (up UserPreferences) GetString(key string, defaultVal string) string {
+	if val, exists := up[key]; exists {
+		if strVal, ok := val.(string); ok {
+			return strVal
+		}
+	}
+	return defaultVal
+}
+
+func (up UserPreferences) Set(key string, value interface{}) {
+	up[key] = value
+}
+
 type User struct {
 	ID           uint   `json:"id" gorm:"primaryKey"`
 	Username     string `json:"username" gorm:"uniqueIndex;not null" validate:"required,min=3,max=50"`
@@ -27,6 +78,8 @@ type User struct {
 	IsOnline       bool           `json:"is_online" gorm:"default:false"`
 	LastSeen       *time.Time     `json:"last_seen"`
 
+	Preferences UserPreferences `json:"preferences" gorm:"type:jsonb;default:'{}'"`
+
 	OwnedClubs      []Club           `json:"owned_clubs,omitempty" gorm:"foreignKey:OwnerID" swaggerignore:"true"`
 	ClubMemberships []ClubMembership `json:"club_memberships,omitempty" gorm:"foreignKey:UserID" swaggerignore:"true"`
 	Posts           []Post           `json:"posts,omitempty" gorm:"foreignKey:UserID" swaggerignore:"true"`
@@ -41,23 +94,23 @@ type User struct {
 
 type PublicUserProfile struct {
 	ID             uint           `json:"id"`
-    Username       string         `json:"username"`
-    FirstName      string         `json:"first_name"`
-    LastName       string         `json:"last_name"`
-    AvatarURL      *string        `json:"avatar_url"`
-    Location       *string        `json:"location"`
-    FavoriteGenres pq.StringArray `json:"favorite_genres"`
-    Bio            *string        `json:"bio"`
-    BooksRead      int            `json:"books_read"`
-    Badges         pq.StringArray `json:"badges"`
-    IsOnline       bool           `json:"is_online"`
-    LastSeen       *time.Time     `json:"last_seen,omitempty"`
-    JoinedAt       time.Time      `json:"joined_at"`
+	Username       string         `json:"username"`
+	FirstName      string         `json:"first_name"`
+	LastName       string         `json:"last_name"`
+	AvatarURL      *string        `json:"avatar_url"`
+	Location       *string        `json:"location"`
+	FavoriteGenres pq.StringArray `json:"favorite_genres"`
+	Bio            *string        `json:"bio"`
+	BooksRead      int            `json:"books_read"`
+	Badges         pq.StringArray `json:"badges"`
+	IsOnline       bool           `json:"is_online"`
+	LastSeen       *time.Time     `json:"last_seen,omitempty"`
+	JoinedAt       time.Time      `json:"joined_at"`
 
-    TotalPosts     int `json:"total_posts"`
-    TotalComments  int `json:"total_comments"`
-    ClubsCount     int `json:"clubs_count"`
-    ReadingStreak  int `json:"reading_streak,omitempty"`
+	TotalPosts    int `json:"total_posts"`
+	TotalComments int `json:"total_comments"`
+	ClubsCount    int `json:"clubs_count"`
+	ReadingStreak int `json:"reading_streak,omitempty"`
 }
 
 type UserResponse struct {
@@ -78,6 +131,8 @@ type UserResponse struct {
 	Badges         pq.StringArray `json:"badges" swaggertype:"array,string"`
 	IsOnline       bool           `json:"is_online"`
 	LastSeen       *time.Time     `json:"last_seen"`
+
+	Preferences UserPreferences `json:"preferences"`
 
 	OwnedClubs      []Club           `json:"owned_clubs,omitempty" swaggerignore:"true"`
 	ClubMemberships []ClubMembership `json:"club_memberships,omitempty" swaggerignore:"true"`
@@ -148,7 +203,15 @@ type UpdateAccountRequest struct {
 	Username  *string `json:"username,omitempty" validate:"omitempty,min=3,max=50"`
 }
 
+type UpdatePreferencesRequest struct {
+    Preferences UserPreferences `json:"preferences" validate:"required"`
+}
+
 func (u *User) ToResponse() UserResponse {
+	if len(u.Preferences) == 0 {
+		u.Preferences = DefaultUserPreferences()
+	}
+
 	return UserResponse{
 		ID:              u.ID,
 		Username:        u.Username,
@@ -166,6 +229,7 @@ func (u *User) ToResponse() UserResponse {
 		Badges:          u.Badges,
 		IsOnline:        u.IsOnline,
 		LastSeen:        u.LastSeen,
+		Preferences:     u.Preferences,
 		OwnedClubs:      u.OwnedClubs,
 		ClubMemberships: u.ClubMemberships,
 		Posts:           u.Posts,
@@ -187,19 +251,34 @@ type SuccessResponse struct {
 }
 
 func (u *User) ToPublicProfile() PublicUserProfile {
-    return PublicUserProfile{
-        ID:             u.ID,
-        Username:       u.Username,
-        FirstName:      u.FirstName,
-        LastName:       u.LastName,
-        AvatarURL:      u.AvatarURL,
-        Location:       u.Location,
-        FavoriteGenres: u.FavoriteGenres,
-        Bio:            u.Bio,
-        BooksRead:      u.BooksRead,
-        Badges:         u.Badges,
-        IsOnline:       u.IsOnline,
-        LastSeen:       u.LastSeen,
-        JoinedAt:       u.CreatedAt,
-    }
+	prefs := u.Preferences
+	if len(prefs) == 0 {
+		prefs = DefaultUserPreferences()
+	}
+
+	profile := PublicUserProfile{
+		ID:        u.ID,
+		Username:  u.Username,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		JoinedAt:  u.CreatedAt,
+		BooksRead: u.BooksRead,
+		Badges:    u.Badges,
+		IsOnline:  u.IsOnline,
+	}
+
+	if prefs.GetBool(PREF_SHOW_LOCATION, true) {
+		profile.Location = u.Location
+	}
+
+	if prefs.GetBool(PREF_SHOW_LAST_SEEN, true) && u.LastSeen != nil && u.IsOnline {
+		since := time.Since(*u.LastSeen)
+		if since <= 15*time.Minute {
+			profile.LastSeen = u.LastSeen
+		}
+	}
+
+	profile.AvatarURL = u.AvatarURL
+
+	return profile
 }
