@@ -25,6 +25,17 @@ func NewLocationHandler(locationService *services.LocationService, locationCache
 	}
 }
 
+// @Summary Search locations
+// @Description Search for Turkish cities and districts with autocomplete
+// @Tags Locations
+// @Produce json
+// @Param q query string true "Search query (minimum 1 character)"
+// @Param type query string false "Search type" Enums(city, district, all) default(all)
+// @Param limit query int false "Maximum results to return" default(10)
+// @Success 200 {object} map[string]interface{} "Search results"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/locations/search [get]
 func (h *LocationHandler) SearchLocations(c *gin.Context) {
 	var req models.LocationSearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
