@@ -39,6 +39,27 @@ type User struct {
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
+type PublicUserProfile struct {
+	ID             uint           `json:"id"`
+    Username       string         `json:"username"`
+    FirstName      string         `json:"first_name"`
+    LastName       string         `json:"last_name"`
+    AvatarURL      *string        `json:"avatar_url"`
+    Location       *string        `json:"location"`
+    FavoriteGenres pq.StringArray `json:"favorite_genres"`
+    Bio            *string        `json:"bio"`
+    BooksRead      int            `json:"books_read"`
+    Badges         pq.StringArray `json:"badges"`
+    IsOnline       bool           `json:"is_online"`
+    LastSeen       *time.Time     `json:"last_seen,omitempty"`
+    JoinedAt       time.Time      `json:"joined_at"`
+
+    TotalPosts     int `json:"total_posts"`
+    TotalComments  int `json:"total_comments"`
+    ClubsCount     int `json:"clubs_count"`
+    ReadingStreak  int `json:"reading_streak,omitempty"`
+}
+
 type UserResponse struct {
 	ID        uint   `json:"id"`
 	Username  string `json:"username"`
@@ -163,4 +184,22 @@ type ErrorResponse struct {
 // SuccessResponse represents a standard success response
 type SuccessResponse struct {
 	Message string `json:"message"`
+}
+
+func (u *User) ToPublicProfile() PublicUserProfile {
+    return PublicUserProfile{
+        ID:             u.ID,
+        Username:       u.Username,
+        FirstName:      u.FirstName,
+        LastName:       u.LastName,
+        AvatarURL:      u.AvatarURL,
+        Location:       u.Location,
+        FavoriteGenres: u.FavoriteGenres,
+        Bio:            u.Bio,
+        BooksRead:      u.BooksRead,
+        Badges:         u.Badges,
+        IsOnline:       u.IsOnline,
+        LastSeen:       u.LastSeen,
+        JoinedAt:       u.CreatedAt,
+    }
 }

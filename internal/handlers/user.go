@@ -379,3 +379,77 @@ func (h *UserHandler) PatchAccount(c *gin.Context) {
 		"user":    user,
 	})
 }
+
+// @Summary Get public user profile
+// @Description Get public profile information for any user (no sensitive data)
+// @Tags Users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string]interface{} "Public profile retrieved successfully"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "User not found"
+// @Router /api/v1/users/{id}/profile [get]
+func (h *UserHandler) GetPublicProfile(c *gin.Context) {
+    idParam := c.Param("id")
+    userID, err := strconv.ParseUint(idParam, 10, 32)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+        return
+    }
+
+    var viewerID *uint
+    if rawViewerID, exists := c.Get("user_id"); exists {
+        if vID, ok := rawViewerID.(uint); ok {
+            viewerID = &vID
+        }
+    }
+
+    profile, err := h.userService.GetPublicUserProfile(uint(userID), viewerID)
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+        return
+    }
+
+    stats, _ := h.userService.GetUserProfileStats(uint(userID))
+
+    c.Header("Cache-Control", "public, max-age=300") // Cache for 5 minutes
+    c.JSON(http.StatusOK, gin.H{
+        "profile": profile,
+        "stats":   stats,
+    })
+}
+
+// @Summary Search users
+// @Description Search for users by username or name
+// @Tags Users
+// @Produce json
+// @Param q query string true "Search query"
+// @Param limit query int false "Maximum results" default(20)
+// @Success 200 {object} map[string]interface{} "Search results"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Router /api/v1/users/search [get]
+func (h *UserHandler) SearchUsers(c *gin.Context) {
+    query := c.Query("q")
+    if query == "" || len(query) < 2 {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "query must be at least 2 characters"})
+        return
+    }
+
+    limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+    if limit > 50 {
+        limit = 50
+    }
+
+    profiles, err := h.userService.SearchPublicUsers(query, limit)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "search failed"})
+        return
+    }
+
+    c.Header("Cache-Control", "public, max-age=300")
+    c.JSON(http.StatusOK, gin.H{
+        "users": profiles,
+        "count": len(profiles),
+        "query": query,
+    })
+}

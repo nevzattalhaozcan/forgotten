@@ -240,3 +240,7 @@ func (r *cachedUserRepository) Delete(id uint) error {
 func (r *cachedUserRepository) List(limit, offset int) ([]*models.User, error) {
 	return r.base.List(limit, offset)
 }
+
+func (r *cachedUserRepository) SearchByUsernameOrName(query string, limit int) ([]*models.User, error) {
+	return r.base.SearchByUsernameOrName(query, limit)
+}

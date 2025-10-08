@@ -17,6 +17,11 @@ type MockUserRepository struct {
 	recorder *MockUserRepositoryMockRecorder
 }
 
+// SearchByUsernameOrName implements repository.UserRepository.
+func (m *MockUserRepository) SearchByUsernameOrName(query string, limit int) ([]*models.User, error) {
+	panic("unimplemented")
+}
+
 // MockUserRepositoryMockRecorder is the mock recorder for MockUserRepository.
 type MockUserRepositoryMockRecorder struct {
 	mock *MockUserRepository

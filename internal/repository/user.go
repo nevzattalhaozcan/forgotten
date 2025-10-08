@@ -78,3 +78,19 @@ func (r *userRepository) List(limit, offset int) ([]*models.User, error) {
 	}
 	return users, nil
 }
+
+func (r *userRepository) SearchByUsernameOrName(query string, limit int) ([]*models.User, error) {
+    var users []*models.User
+    
+    err := r.db.Where("is_active = ?", true).
+        Where("LOWER(username) LIKE LOWER(?) OR LOWER(first_name) LIKE LOWER(?) OR LOWER(last_name) LIKE LOWER(?)", 
+            "%"+query+"%", "%"+query+"%", "%"+query+"%").
+        Limit(limit).
+        Find(&users).Error
+    
+    if err != nil {
+        return nil, err
+    }
+    
+    return users, nil
+}

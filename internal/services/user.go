@@ -13,7 +13,7 @@ import (
 
 type UserService struct {
 	userRepo repository.UserRepository
-	config  *config.Config
+	config   *config.Config
 }
 
 func NewUserService(userRepo repository.UserRepository, config *config.Config) *UserService {
@@ -44,18 +44,18 @@ func (s *UserService) Register(req *models.RegisterRequest) (*models.UserRespons
 	}
 
 	user := &models.User{
-		Username: req.Username,
-		Email:    req.Email,
-		PasswordHash: hashedPassword,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		IsActive: true,
-		Role: req.Role,
-		AvatarURL: &req.AvatarURL,
-		Location: &req.Location,
+		Username:       req.Username,
+		Email:          req.Email,
+		PasswordHash:   hashedPassword,
+		FirstName:      req.FirstName,
+		LastName:       req.LastName,
+		IsActive:       true,
+		Role:           req.Role,
+		AvatarURL:      &req.AvatarURL,
+		Location:       &req.Location,
 		FavoriteGenres: req.FavoriteGenres,
-		Bio: &req.Bio,
-		ReadingGoal: req.ReadingGoal,
+		Bio:            &req.Bio,
+		ReadingGoal:    req.ReadingGoal,
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
@@ -85,9 +85,9 @@ func (s *UserService) Login(req *models.LoginRequest) (string, *models.UserRespo
 
 	token, err := utils.GenerateJWT(
 		user.ID,
-		user.Email, 
-		user.Role, 
-		s.config.JWT.Secret, 
+		user.Email,
+		user.Role,
+		s.config.JWT.Secret,
 		s.config.JWT.ExpirationHours,
 	)
 	if err != nil {
@@ -110,6 +110,69 @@ func (s *UserService) GetUserByID(id uint) (*models.UserResponse, error) {
 
 	response := user.ToResponse()
 	return &response, nil
+}
+
+func (s *UserService) GetPublicUserProfile(userID uint, viewerID *uint) (*models.PublicUserProfile, error) {
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	if !user.IsActive {
+		return nil, errors.New("user profile is not available")
+	}
+
+	profile := user.ToPublicProfile()
+
+	profile.TotalPosts = len(user.Posts)
+	profile.TotalComments = len(user.Comments)
+	profile.ClubsCount = len(user.ClubMemberships)
+
+	return &profile, nil
+}
+
+func (s *UserService) GetUserProfileStats(userID uint) (map[string]interface{}, error) {
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	stats := map[string]interface{}{
+		"total_posts":    len(user.Posts),
+		"total_comments": len(user.Comments),
+		"clubs_joined":   len(user.ClubMemberships),
+		"books_read":     user.BooksRead,
+		"profile_views":  0,
+		"member_since":   user.CreatedAt.Format("January 2006"),
+	}
+
+	return stats, nil
+}
+
+func (s *UserService) SearchPublicUsers(query string, limit int) ([]models.PublicUserProfile, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 20
+	}
+
+	users, err := s.userRepo.SearchByUsernameOrName(query, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var profiles []models.PublicUserProfile
+	for _, user := range users {
+		if user.IsActive {
+			profiles = append(profiles, user.ToPublicProfile())
+		}
+	}
+
+	return profiles, nil
 }
 
 func (s *UserService) GetAllUsers() ([]models.UserResponse, error) {
@@ -216,7 +279,7 @@ func (s *UserService) DeleteUser(id uint) error {
 	if err := s.userRepo.Update(user); err != nil {
 		return errors.New("failed to deactivate user")
 	}
-	
+
 	err = s.userRepo.Delete(id)
 	if err != nil {
 		return err

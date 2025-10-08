@@ -10,6 +10,7 @@ type UserRepository interface {
 	Update(user *models.User) error
 	Delete(id uint) error
 	List(limit, offset int) ([]*models.User, error)
+	SearchByUsernameOrName(query string, limit int) ([]*models.User, error)
 	GetByEmailIncludingDeleted(email string) (*models.User, error)
 	GetByUsernameIncludingDeleted(username string) (*models.User, error)
 }

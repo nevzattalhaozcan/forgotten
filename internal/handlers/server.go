@@ -163,6 +163,8 @@ func (s *Server) setupRoutes() {
 		protected.GET("/profile", userHandler.GetProfile)
 		protected.GET("/users/:id", middleware.AuthorizeSelf(), userHandler.GetUser)
 		protected.GET("/users", middleware.RestrictToRoles("admin", "superuser"), userHandler.GetAllUsers)
+		protected.GET("/users/search", userHandler.SearchUsers)
+		protected.GET("/users/:id/profile", userHandler.GetPublicProfile)
 		protected.PUT("/users/:id", middleware.AuthorizeSelf(), userHandler.UpdateUser)
 		protected.DELETE("/users/:id", middleware.AuthorizeSelf(), userHandler.DeleteUser)
 		protected.PATCH("/users/:id/password", userHandler.PatchPassword)
