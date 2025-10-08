@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
 	"github.com/lib/pq"
@@ -8,6 +10,38 @@ import (
 )
 
 type UserPreferences map[string]interface{}
+
+func (up *UserPreferences) Scan(value interface{}) error {
+    if value == nil {
+        *up = make(UserPreferences)
+        return nil
+    }
+
+    var bytes []byte
+    switch v := value.(type) {
+    case []byte:
+        bytes = v
+    case string:
+        bytes = []byte(v)
+    default:
+        *up = make(UserPreferences)
+        return nil
+    }
+
+    if len(bytes) == 0 {
+        *up = make(UserPreferences)
+        return nil
+    }
+
+    return json.Unmarshal(bytes, up)
+}
+
+func (up UserPreferences) Value() (driver.Value, error) {
+    if len(up) == 0 {
+        return "{}", nil
+    }
+    return json.Marshal(up)
+}
 
 const (
 	PREF_SHOW_LOCATION  = "privacy.show_location"

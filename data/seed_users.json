@@ -9,9 +9,9 @@
       "is_active": true,
       "role": "admin",
       "avatar_url": "https://i.pravatar.cc/150?img=3",
-      "bio": "Just a regular John Doe.",
+      "bio": "Bildiğiniz John Doe.",
       "location": "Ağrı, Turkey",
-      "favorite_genre": [ "Science Fiction", "Fantasy" ],
+      "favorite_genre": [ "Bilim Kurgu", "Fantastik" ],
       "reading_goal": 20
     },
     {
@@ -23,9 +23,9 @@
       "is_active": true,
       "role": "user",
       "avatar_url": "https://i.pravatar.cc/150?img=5",
-      "bio": "Avid reader and book lover.",
-      "location": "Istanbul, Turkey",
-      "favorite_genre": [ "Mystery", "Romance" ],
+      "bio": "Kitap kurdu ve kitap sever.",
+      "location": "İstanbul, Turkey",
+      "favorite_genre": [ "Gizem", "Romantik" ],
       "reading_goal": 15
     },
     {
@@ -37,9 +37,9 @@
       "is_active": true,
       "role": "user",
       "avatar_url": "https://i.pravatar.cc/150?img=10",
-      "bio": "Just a test user.",
+      "bio": "Sadece bir test kullanıcısı.",
       "location": "Ankara, Turkey",
-      "favorite_genre": [ "Non-Fiction", "Biography" ],
+      "favorite_genre": [ "Kurgu Dışı", "Biyografi" ],
       "reading_goal": 10
     },
     {
@@ -51,9 +51,9 @@
       "is_active": true,
       "role": "user",
       "avatar_url": "https://i.pravatar.cc/150?img=15",
-      "bio": "Another test user.",
-      "location": "Izmir, Turkey",
-      "favorite_genre": [ "Horror", "Thriller" ],
+      "bio": "Başka bir test kullanıcısı.",
+      "location": "İzmir, Turkey",
+      "favorite_genre": [ "Korku", "Gerilim" ],
       "reading_goal": 5
     },
     {
@@ -65,9 +65,9 @@
       "is_active": false,
       "role": "user",
       "avatar_url": "https://i.pravatar.cc/150?img=20",
-      "bio": "Inactive user account.",
+      "bio": "Aktif olmayan bir kullanıcı.",
       "location": "Bursa, Turkey",
-      "favorite_genre": [ "Poetry", "Drama" ],
+      "favorite_genre": [ "Şiir", "Drama" ],
       "reading_goal": 0
     },
     {
@@ -79,9 +79,9 @@
       "is_active": true,
       "role": "admin",
       "avatar_url": "https://i.pravatar.cc/150?img=25",
-      "bio": "Administrator of the platform.",
+      "bio": "Platformun yöneticisi.",
       "location": "Metropolis, Earth",
-      "favorite_genre": [ "All" ],
+      "favorite_genre": [ "Roman" ],
       "reading_goal": 50
     },
     {
@@ -95,7 +95,7 @@
       "avatar_url": "https://i.pravatar.cc/150?img=30",
       "bio": "Quality Assurance Tester.",
       "location": "Testville, Testland",
-      "favorite_genre": [ "Technical", "Educational" ],
+      "favorite_genre": [ "Teknoloji", "Eğitim" ],
       "reading_goal": 25
     }
   ]
