@@ -168,6 +168,15 @@ func (s *UserService) SearchPublicUsers(query string, limit int) ([]models.Publi
 	var profiles []models.PublicUserProfile
 	for _, user := range users {
 		if user.IsActive {
+			userPrefs := user.Preferences
+			if len(userPrefs) == 0 {
+				userPrefs = models.DefaultUserPreferences()
+			}
+
+			if !userPrefs.GetBool(models.PREF_ALLOW_SEARCH, true) {
+				continue
+			}
+			
 			profiles = append(profiles, user.ToPublicProfile())
 		}
 	}

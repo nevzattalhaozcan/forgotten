@@ -83,6 +83,7 @@ func (r *userRepository) SearchByUsernameOrName(query string, limit int) ([]*mod
     var users []*models.User
     
     err := r.db.Where("is_active = ?", true).
+        Where("(preferences->>'privacy.allow_search')::boolean IS NOT FALSE").
         Where("LOWER(username) LIKE LOWER(?) OR LOWER(first_name) LIKE LOWER(?) OR LOWER(last_name) LIKE LOWER(?)", 
             "%"+query+"%", "%"+query+"%", "%"+query+"%").
         Limit(limit).
