@@ -124,7 +124,7 @@ func RestrictToRoles(allowedRoles ...string) gin.HandlerFunc {
 	}
 }
 
-func RequireClubMembership(clubRepo repository.ClubRepository) gin.HandlerFunc {
+func RequireClubMembership(clubRepo repository.ClubRepository, postRepo repository.PostRepository, commentRepo repository.CommentRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// allow admin and superuser to bypass club membership check
 		userRoleRaw, exists := c.Get("user_role")
@@ -147,10 +147,63 @@ func RequireClubMembership(clubRepo repository.ClubRepository) gin.HandlerFunc {
 		var clubID uint
 		var err error
 
-		clubIDParam := c.Param("id")
+		path := c.FullPath()
+		idParam := c.Param("id")
 
-		if clubIDParam != "" {
-			clubID64, parseErr := strconv.ParseUint(clubIDParam, 10, 32)
+		if strings.Contains(path, "/posts/:id") && idParam != "" {
+			// For post-related routes, get the post and extract club_id
+			postID, parseErr := strconv.ParseUint(idParam, 10, 32)
+			if parseErr != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid post ID"})
+				c.Abort()
+				return
+			}
+
+			post, err := postRepo.GetByID(uint(postID))
+			if err != nil {
+				if err == gorm.ErrRecordNotFound {
+					c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+				} else {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch post"})
+				}
+				c.Abort()
+				return
+			}
+			clubID = post.ClubID
+		} else if strings.Contains(path, "/comments/:id") && idParam != "" {
+			// For comment-related routes, get the comment, then post, then club_id
+			commentID, parseErr := strconv.ParseUint(idParam, 10, 32)
+			if parseErr != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid comment ID"})
+				c.Abort()
+				return
+			}
+
+			comment, err := commentRepo.GetByID(uint(commentID))
+			if err != nil {
+				if err == gorm.ErrRecordNotFound {
+					c.JSON(http.StatusNotFound, gin.H{"error": "comment not found"})
+				} else {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch comment"})
+				}
+				c.Abort()
+				return
+			}
+
+			post, err := postRepo.GetByID(comment.PostID)
+			if err != nil {
+				if err == gorm.ErrRecordNotFound {
+					c.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+				} else {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch post"})
+				}
+				c.Abort()
+				return
+			}
+			clubID = post.ClubID
+		} else if strings.Contains(path, "/clubs/:id") && idParam != "" {
+			// For direct club routes (e.g., /clubs/:id/posts)
+			clubID64, parseErr := strconv.ParseUint(idParam, 10, 32)
 			if parseErr != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
 				c.Abort()
@@ -158,6 +211,7 @@ func RequireClubMembership(clubRepo repository.ClubRepository) gin.HandlerFunc {
 			}
 			clubID = uint(clubID64)
 		} else {
+			// Try to get club_id from request body
 			bodyBytes, readErr := c.GetRawData()
 			if readErr != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "unable to read request body"})
@@ -174,7 +228,7 @@ func RequireClubMembership(clubRepo repository.ClubRepository) gin.HandlerFunc {
 			if json.Unmarshal(bodyBytes, &reqBody) == nil && reqBody.ClubID > 0 {
 				clubID = reqBody.ClubID
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "club_id is required in body"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "club_id is required"})
 				c.Abort()
 				return
 			}
