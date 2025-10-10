@@ -121,23 +121,35 @@ type ClubSummary struct {
 	Name string `json:"name"`
 }
 
+type LikeSummary struct {
+	ID     uint `json:"id"`
+	UserID uint `json:"user_id"`
+}
+
+type CommentSummary struct {
+	ID     uint `json:"id"`
+	UserID uint `json:"user_id"`
+}
+
 type PostSummary struct {
-	ID            uint         `json:"id" gorm:"column:id"`
-	Title         string       `json:"title" gorm:"column:title"`
-	Content       string       `json:"content" gorm:"column:content"`
-	Type          string       `json:"type" gorm:"column:type"`
-	TypeData      interface{}  `json:"type_data,omitempty"`
-	IsPinned      bool         `json:"is_pinned" gorm:"column:is_pinned"`
-	LikesCount    int          `json:"likes_count" gorm:"column:likes_count"`
-	CommentsCount int          `json:"comments_count" gorm:"column:comments_count"`
-	ViewsCount    int          `json:"views_count" gorm:"column:views_count"`
-	HasUserLiked  bool         `json:"has_user_liked,omitempty" gorm:"-"`
-	UserID        uint         `json:"user_id" gorm:"column:post_user_id"`
-	ClubID        *uint        `json:"club_id" gorm:"column:post_club_id"`
-	User          UserSummary  `json:"user"`
-	Club          *ClubSummary `json:"club,omitempty"`
-	CreatedAt     time.Time    `json:"created_at" gorm:"column:created_at"`
-	UpdatedAt     time.Time    `json:"updated_at" gorm:"column:updated_at"`
+	ID            uint             `json:"id" gorm:"column:id"`
+	Title         string           `json:"title" gorm:"column:title"`
+	Content       string           `json:"content" gorm:"column:content"`
+	Type          string           `json:"type" gorm:"column:type"`
+	TypeData      interface{}      `json:"type_data,omitempty"`
+	IsPinned      bool             `json:"is_pinned" gorm:"column:is_pinned"`
+	LikesCount    int              `json:"likes_count" gorm:"column:likes_count"`
+	CommentsCount int              `json:"comments_count" gorm:"column:comments_count"`
+	ViewsCount    int              `json:"views_count" gorm:"column:views_count"`
+	HasUserLiked  bool             `json:"has_user_liked,omitempty" gorm:"-"`
+	UserID        uint             `json:"user_id" gorm:"column:post_user_id"`
+	ClubID        *uint            `json:"club_id" gorm:"column:post_club_id"`
+	User          UserSummary      `json:"user"`
+	Club          *ClubSummary     `json:"club,omitempty"`
+	Likes         []LikeSummary    `json:"likes,omitempty"`
+	Comments      []CommentSummary `json:"comments,omitempty"`
+	CreatedAt     time.Time        `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt     time.Time        `json:"updated_at" gorm:"column:updated_at"`
 }
 
 func (p *Post) GetReviewData() (*ReviewData, error) {

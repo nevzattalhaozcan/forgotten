@@ -219,7 +219,10 @@ func (r *postRepository) ListPopularPublicPosts(limit int) ([]models.Post, error
 		Preload("User").
 		Preload("Club").
 		Preload("Comments").
+		Preload("Comments.User").
 		Preload("Likes").
+		Preload("Likes.User").
+		Preload("Likes.Post").
 		Joins("JOIN clubs ON posts.club_id = clubs.id").
 		Where("clubs.is_private = ? AND posts.created_at > ?", false, time.Now().AddDate(0, 0, -30)). // Last 30 days
 		Order("posts.likes_count DESC, posts.comments_count DESC, posts.created_at DESC").
