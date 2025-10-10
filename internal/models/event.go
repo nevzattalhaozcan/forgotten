@@ -8,12 +8,12 @@ type Event struct {
 	Description  string      `json:"description"`
 	ClubID       uint        `json:"club_id" gorm:"not null"`
 	EventType    EventType   `json:"event_type" gorm:"type:varchar(20)"`
-	EventDate    time.Time   `json:"event_date" gorm:"not null"`
-	EventTime    time.Time   `json:"event_time" gorm:"not null"`
+	EventDate    time.Time   `json:"event_date" gorm:"type:date;not null"`
+	EventTime    time.Time   `json:"event_time" gorm:"type:time;not null"`
 	Location     string      `json:"location,omitempty"`
 	OnlineLink   string      `json:"online_link,omitempty"`
 	MaxAttendees *int        `json:"max_attendees,omitempty"`
-	IsPublic	 bool        `json:"is_public" gorm:"default:false"`
+	IsPublic     bool        `json:"is_public" gorm:"default:false"`
 	CreatedAt    time.Time   `json:"created_at" gorm:"autoCreateTime"`
 	Club         Club        `json:"club" gorm:"foreignKey:ClubID"`
 	RSVPs        []EventRSVP `json:"rsvps,omitempty"`
@@ -48,24 +48,24 @@ type CreateEventRequest struct {
 	Title        string    `json:"title" binding:"required"`
 	Description  string    `json:"description"`
 	EventType    EventType `json:"event_type" binding:"required,oneof=in_person online"`
-	EventDate    time.Time `json:"event_date" binding:"required"`
-	EventTime    time.Time `json:"event_time" binding:"required"`
+	EventDate    time.Time `json:"event_date" binding:"required" time_format:"2006-01-02"`
+	EventTime    time.Time `json:"event_time" binding:"required" time_format:"15:04"`
 	Location     string    `json:"location,omitempty"`
 	OnlineLink   string    `json:"online_link,omitempty"`
 	MaxAttendees *int      `json:"max_attendees,omitempty"`
-	IsPublic	 bool      `json:"is_public" gorm:"default:false"`
+	IsPublic     bool      `json:"is_public" gorm:"default:false"`
 }
 
 type UpdateEventRequest struct {
 	Title        *string    `json:"title,omitempty"`
 	Description  *string    `json:"description,omitempty"`
 	EventType    *EventType `json:"event_type,omitempty" binding:"omitempty,oneof=in_person online"`
-	EventDate    *time.Time `json:"event_date,omitempty" binding:"omitempty"`
-	EventTime    *time.Time `json:"event_time,omitempty" binding:"omitempty"`
+	EventDate    *time.Time `json:"event_date,omitempty" binding:"omitempty" time_format:"2006-01-02"`
+	EventTime    *time.Time `json:"event_time,omitempty" binding:"omitempty" time_format:"15:04"`
 	Location     *string    `json:"location,omitempty"`
 	OnlineLink   *string    `json:"online_link,omitempty"`
 	MaxAttendees *int       `json:"max_attendees,omitempty"`
-	IsPublic	 *bool      `json:"is_public,omitempty"`
+	IsPublic     *bool      `json:"is_public,omitempty"`
 }
 
 type RSVPRequest struct {
@@ -95,8 +95,8 @@ func (e *Event) ToResponse() EventResponse {
 		Description:  e.Description,
 		ClubID:       e.ClubID,
 		EventType:    e.EventType,
-		EventDate:    e.EventDate.Format(time.RFC3339),
-		EventTime:    e.EventTime.Format(time.RFC3339),
+		EventDate:    e.EventDate.Format("2006-01-02"),
+		EventTime:    e.EventTime.Format("15:04"),
 		Location:     e.Location,
 		OnlineLink:   e.OnlineLink,
 		MaxAttendees: e.MaxAttendees,

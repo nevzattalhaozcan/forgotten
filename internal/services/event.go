@@ -183,15 +183,34 @@ func (s *EventService) refreshClubNextMeeting(clubID uint) error {
 		return err
 	}
 
+	combine := func(d, t time.Time) time.Time {
+		loc := d.Location()
+		if loc == time.UTC && t.Location() != time.UTC {
+			loc = t.Location()
+		}
+		return time.Date(
+			d.Year(), d.Month(), d.Day(),
+			t.Hour(), t.Minute(), t.Second(), t.Nanosecond(),
+			loc,
+		)
+	}
+
 	now := time.Now()
-	var next *models.Event
+	var (
+		nextEvent *models.Event
+		nextStart time.Time
+	)
+
 	for i := range events {
-		e := events[i]
-		if e.EventDate.Before(now) {
+		event := &events[i]
+		eventStart := combine(event.EventDate, event.EventTime)
+
+		if eventStart.Before(now) {
 			continue
 		}
-		if next == nil || e.EventDate.Before(next.EventDate) {
-			next = &e
+		if nextEvent == nil || eventStart.Before(nextStart) {
+			nextEvent = event
+			nextStart = eventStart
 		}
 	}
 
@@ -200,30 +219,30 @@ func (s *EventService) refreshClubNextMeeting(clubID uint) error {
 		return err
 	}
 
-	if next == nil {
+	if nextEvent == nil {
 		club.NextMeeting = nil
 		return s.clubRepo.Update(club)
 	}
 
 	var loc *string
-	switch next.EventType {
+	switch nextEvent.EventType {
 	case models.EventOnline:
-		if next.OnlineLink != "" {
-			l := next.OnlineLink
+		if nextEvent.OnlineLink != "" {
+			l := nextEvent.OnlineLink
 			loc = &l
 		}
 	default:
-		if next.Location != "" {
-			l := next.Location
+		if nextEvent.Location != "" {
+			l := nextEvent.Location
 			loc = &l
-		}	
+		}
 	}
 
-	topic := next.Title
+	topic := nextEvent.Title
 	nm := models.NextMeeting{
-		Date: &next.EventDate,
+		Date:     &nextEvent.EventDate,
 		Location: loc,
-		Topic: &topic,
+		Topic:    &topic,
 	}
 	if b, merr := json.Marshal(&nm); merr == nil {
 		club.NextMeeting = b
@@ -233,7 +252,7 @@ func (s *EventService) refreshClubNextMeeting(clubID uint) error {
 }
 
 func (s *EventService) ClubRepo() repository.ClubRepository {
-    return s.clubRepo
+	return s.clubRepo
 }
 
 func (s *EventService) GetPublicEvents() ([]models.EventResponse, error) {
