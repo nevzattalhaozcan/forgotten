@@ -8,8 +8,8 @@ type Event struct {
 	Description  string      `json:"description"`
 	ClubID       uint        `json:"club_id" gorm:"not null"`
 	EventType    EventType   `json:"event_type" gorm:"type:varchar(20)"`
-	StartTime    time.Time   `json:"start_time" gorm:"not null"`
-	EndTime      time.Time   `json:"end_time" gorm:"not null"`
+	EventDate    time.Time   `json:"event_date" gorm:"not null"`
+	EventTime    time.Time   `json:"event_time" gorm:"not null"`
 	Location     string      `json:"location,omitempty"`
 	OnlineLink   string      `json:"online_link,omitempty"`
 	MaxAttendees *int        `json:"max_attendees,omitempty"`
@@ -48,8 +48,8 @@ type CreateEventRequest struct {
 	Title        string    `json:"title" binding:"required"`
 	Description  string    `json:"description"`
 	EventType    EventType `json:"event_type" binding:"required,oneof=in_person online"`
-	StartTime    time.Time `json:"start_time" binding:"required"`
-	EndTime      time.Time `json:"end_time" binding:"required,gtfield=StartTime"`
+	EventDate    time.Time `json:"event_date" binding:"required"`
+	EventTime    time.Time `json:"event_time" binding:"required"`
 	Location     string    `json:"location,omitempty"`
 	OnlineLink   string    `json:"online_link,omitempty"`
 	MaxAttendees *int      `json:"max_attendees,omitempty"`
@@ -60,8 +60,8 @@ type UpdateEventRequest struct {
 	Title        *string    `json:"title,omitempty"`
 	Description  *string    `json:"description,omitempty"`
 	EventType    *EventType `json:"event_type,omitempty" binding:"omitempty,oneof=in_person online"`
-	StartTime    *time.Time `json:"start_time,omitempty" binding:"omitempty"`
-	EndTime      *time.Time `json:"end_time,omitempty" binding:"omitempty,gtfield=StartTime"`
+	EventDate    *time.Time `json:"event_date,omitempty" binding:"omitempty"`
+	EventTime    *time.Time `json:"event_time,omitempty" binding:"omitempty"`
 	Location     *string    `json:"location,omitempty"`
 	OnlineLink   *string    `json:"online_link,omitempty"`
 	MaxAttendees *int       `json:"max_attendees,omitempty"`
@@ -78,8 +78,8 @@ type EventResponse struct {
 	Description  string      `json:"description"`
 	ClubID       uint        `json:"club_id"`
 	EventType    EventType   `json:"event_type"`
-	StartTime    string      `json:"start_time"`
-	EndTime      string      `json:"end_time"`
+	EventDate    string      `json:"event_date"`
+	EventTime    string      `json:"event_time"`
 	Location     string      `json:"location,omitempty"`
 	OnlineLink   string      `json:"online_link,omitempty"`
 	MaxAttendees *int        `json:"max_attendees,omitempty"`
@@ -95,8 +95,8 @@ func (e *Event) ToResponse() EventResponse {
 		Description:  e.Description,
 		ClubID:       e.ClubID,
 		EventType:    e.EventType,
-		StartTime:    e.StartTime.Format(time.RFC3339),
-		EndTime:      e.EndTime.Format(time.RFC3339),
+		EventDate:    e.EventDate.Format(time.RFC3339),
+		EventTime:    e.EventTime.Format(time.RFC3339),
 		Location:     e.Location,
 		OnlineLink:   e.OnlineLink,
 		MaxAttendees: e.MaxAttendees,

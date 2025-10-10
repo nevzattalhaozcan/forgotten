@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -43,10 +42,6 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 	}
 
 	if err := h.validator.Struct(&req); err != nil {
-		if strings.Contains(err.Error(), "gtfield") {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "end_time must be after start_time"})
-            return
-        }
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

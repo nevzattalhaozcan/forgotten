@@ -67,12 +67,12 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 		}
 	}
 
-	if cfg.Server.Environment == "development" {
-        if err := SeedForTest(db); err != nil {
-            log.Printf("seeding error: %v", err)
-            // non-fatal
-        }
-    }
+	// if cfg.Server.Environment == "development" {
+    //     if err := SeedForTest(db); err != nil {
+    //         log.Printf("seeding error: %v", err)
+    //         // non-fatal
+    //     }
+    // }
 
 	log.Println("Database connected successfully")
 	return db, nil
