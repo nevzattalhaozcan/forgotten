@@ -40,7 +40,7 @@ func (s *EventService) CreateEvent(clubID uint, req *models.CreateEventRequest) 
 		ClubID:       clubID,
 		EventType:    req.EventType,
 		EventDate:    req.EventDate.Time,
-		EventTime:    req.EventTime.Time,
+		EventTime:    models.DBTime{Time: req.EventTime.Time},
 		Location:     req.Location,
 		OnlineLink:   req.OnlineLink,
 		MaxAttendees: req.MaxAttendees,
@@ -113,7 +113,7 @@ func (s *EventService) UpdateEvent(id uint, req *models.UpdateEventRequest) (*mo
 		event.EventDate = req.EventDate.Time
 	}
 	if req.EventTime != nil {
-		event.EventTime = req.EventTime.Time
+		event.EventTime = models.DBTime{Time: req.EventTime.Time}
 	}
 	if req.Location != nil {
 		event.Location = *req.Location
@@ -203,7 +203,7 @@ func (s *EventService) refreshClubNextMeeting(clubID uint) error {
 
 	for i := range events {
 		event := &events[i]
-		eventStart := combine(event.EventDate, event.EventTime)
+		eventStart := combine(event.EventDate, event.EventTime.Time)
 
 		if eventStart.Before(now) {
 			continue
