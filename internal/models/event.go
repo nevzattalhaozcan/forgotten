@@ -1,6 +1,42 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
+)
+
+type DateYMD struct{ time.Time } // accepts "2006-01-02"
+type TimeHM struct{ time.Time }  // accepts "15:04"
+
+func (d *DateYMD) UnmarshalJSON(b []byte) error {
+    var s string
+    if err := json.Unmarshal(b, &s); err != nil {
+        return fmt.Errorf("date must be a string YYYY-MM-DD: %w", err)
+    }
+    s = strings.TrimSpace(s)
+    tt, err := time.ParseInLocation("2006-01-02", s, time.Local) // or a fixed TZ
+    if err != nil {
+        return fmt.Errorf("date must be YYYY-MM-DD: %w", err)
+    }
+    d.Time = tt
+    return nil
+}
+
+func (t *TimeHM) UnmarshalJSON(b []byte) error {
+    var s string
+    if err := json.Unmarshal(b, &s); err != nil {
+        return fmt.Errorf("time must be a string HH:MM (24h): %w", err)
+    }
+    s = strings.TrimSpace(s)
+    tt, err := time.ParseInLocation("15:04", s, time.Local) // or a fixed TZ
+    if err != nil {
+        return fmt.Errorf("time must be HH:MM (24h): %w", err)
+    }
+    t.Time = tt
+    return nil
+}
 
 type Event struct {
 	ID           uint        `json:"id" gorm:"primaryKey"`
@@ -48,8 +84,8 @@ type CreateEventRequest struct {
 	Title        string    `json:"title" binding:"required"`
 	Description  string    `json:"description"`
 	EventType    EventType `json:"event_type" binding:"required,oneof=in_person online"`
-	EventDate    time.Time `json:"event_date" binding:"required" time_format:"2006-01-02"`
-	EventTime    time.Time `json:"event_time" binding:"required" time_format:"15:04"`
+	EventDate    DateYMD   `json:"event_date" binding:"required"`
+	EventTime    TimeHM    `json:"event_time" binding:"required"`
 	Location     string    `json:"location,omitempty"`
 	OnlineLink   string    `json:"online_link,omitempty"`
 	MaxAttendees *int      `json:"max_attendees,omitempty"`
@@ -60,8 +96,8 @@ type UpdateEventRequest struct {
 	Title        *string    `json:"title,omitempty"`
 	Description  *string    `json:"description,omitempty"`
 	EventType    *EventType `json:"event_type,omitempty" binding:"omitempty,oneof=in_person online"`
-	EventDate    *time.Time `json:"event_date,omitempty" binding:"omitempty" time_format:"2006-01-02"`
-	EventTime    *time.Time `json:"event_time,omitempty" binding:"omitempty" time_format:"15:04"`
+	EventDate    *DateYMD   `json:"event_date,omitempty" binding:"omitempty"`
+	EventTime    *TimeHM    `json:"event_time,omitempty" binding:"omitempty"`
 	Location     *string    `json:"location,omitempty"`
 	OnlineLink   *string    `json:"online_link,omitempty"`
 	MaxAttendees *int       `json:"max_attendees,omitempty"`

@@ -39,8 +39,8 @@ func (s *EventService) CreateEvent(clubID uint, req *models.CreateEventRequest) 
 		Description:  req.Description,
 		ClubID:       clubID,
 		EventType:    req.EventType,
-		EventDate:    req.EventDate,
-		EventTime:    req.EventTime,
+		EventDate:    req.EventDate.Time,
+		EventTime:    req.EventTime.Time,
 		Location:     req.Location,
 		OnlineLink:   req.OnlineLink,
 		MaxAttendees: req.MaxAttendees,
@@ -110,10 +110,10 @@ func (s *EventService) UpdateEvent(id uint, req *models.UpdateEventRequest) (*mo
 		event.EventType = *req.EventType
 	}
 	if req.EventDate != nil {
-		event.EventDate = *req.EventDate
+		event.EventDate = req.EventDate.Time
 	}
 	if req.EventTime != nil {
-		event.EventTime = *req.EventTime
+		event.EventTime = req.EventTime.Time
 	}
 	if req.Location != nil {
 		event.Location = *req.Location
