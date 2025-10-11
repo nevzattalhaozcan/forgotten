@@ -124,7 +124,7 @@ func RestrictToRoles(allowedRoles ...string) gin.HandlerFunc {
 	}
 }
 
-func RequireClubMembership(clubRepo repository.ClubRepository, postRepo repository.PostRepository, commentRepo repository.CommentRepository) gin.HandlerFunc {
+func RequireClubMembership(clubRepo repository.ClubRepository, postRepo repository.PostRepository, commentRepo repository.CommentRepository, eventRepo repository.EventRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// allow admin and superuser to bypass club membership check
 		userRoleRaw, exists := c.Get("user_role")
@@ -210,7 +210,26 @@ func RequireClubMembership(clubRepo repository.ClubRepository, postRepo reposito
 				return
 			}
 			clubID = uint(clubID64)
-		} else {
+		} else if (strings.Contains(path, "/events/:id/rsvp") || strings.Contains(path, "/events/:id/attendees")) && idParam != "" {
+            // For RSVP/attendees, get event and extract club_id
+            eventID, parseErr := strconv.ParseUint(idParam, 10, 32)
+            if parseErr != nil {
+                c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event ID"})
+                c.Abort()
+                return
+            }
+            event, err := eventRepo.GetByID(uint(eventID))
+            if err != nil {
+                if err == gorm.ErrRecordNotFound {
+                    c.JSON(http.StatusNotFound, gin.H{"error": "event not found"})
+                } else {
+                    c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch event"})
+                }
+                c.Abort()
+                return
+            }
+            clubID = event.ClubID
+        } else {
 			// Try to get club_id from request body
 			bodyBytes, readErr := c.GetRawData()
 			if readErr != nil {
