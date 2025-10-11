@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -9,33 +10,55 @@ import (
 
 type DateYMD struct{ time.Time } // accepts "2006-01-02"
 type TimeHM struct{ time.Time }  // accepts "15:04"
+type DBTime struct{ time.Time }
+
+func (t *DBTime) Scan(value interface{}) error {
+	switch v := value.(type) {
+	case time.Time:
+		t.Time = v
+		return nil
+	case string:
+		parsed, err := time.Parse("15:04:05", v)
+		if err != nil {
+			return err
+		}
+		t.Time = parsed
+		return nil
+	default:
+		return fmt.Errorf("cannot scan type %T into DBTime", value)
+	}
+}
+
+func (t DBTime) Value() (driver.Value, error) {
+	return t.Time.Format("15:04:05"), nil
+}
 
 func (d *DateYMD) UnmarshalJSON(b []byte) error {
-    var s string
-    if err := json.Unmarshal(b, &s); err != nil {
-        return fmt.Errorf("date must be a string YYYY-MM-DD: %w", err)
-    }
-    s = strings.TrimSpace(s)
-    tt, err := time.ParseInLocation("2006-01-02", s, time.Local) // or a fixed TZ
-    if err != nil {
-        return fmt.Errorf("date must be YYYY-MM-DD: %w", err)
-    }
-    d.Time = tt
-    return nil
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return fmt.Errorf("date must be a string YYYY-MM-DD: %w", err)
+	}
+	s = strings.TrimSpace(s)
+	tt, err := time.ParseInLocation("2006-01-02", s, time.Local) // or a fixed TZ
+	if err != nil {
+		return fmt.Errorf("date must be YYYY-MM-DD: %w", err)
+	}
+	d.Time = tt
+	return nil
 }
 
 func (t *TimeHM) UnmarshalJSON(b []byte) error {
-    var s string
-    if err := json.Unmarshal(b, &s); err != nil {
-        return fmt.Errorf("time must be a string HH:MM (24h): %w", err)
-    }
-    s = strings.TrimSpace(s)
-    tt, err := time.ParseInLocation("15:04", s, time.Local) // or a fixed TZ
-    if err != nil {
-        return fmt.Errorf("time must be HH:MM (24h): %w", err)
-    }
-    t.Time = tt
-    return nil
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return fmt.Errorf("time must be a string HH:MM (24h): %w", err)
+	}
+	s = strings.TrimSpace(s)
+	tt, err := time.ParseInLocation("15:04", s, time.Local) // or a fixed TZ
+	if err != nil {
+		return fmt.Errorf("time must be HH:MM (24h): %w", err)
+	}
+	t.Time = tt
+	return nil
 }
 
 type Event struct {
@@ -45,7 +68,7 @@ type Event struct {
 	ClubID       uint        `json:"club_id" gorm:"not null"`
 	EventType    EventType   `json:"event_type" gorm:"type:varchar(20)"`
 	EventDate    time.Time   `json:"event_date" gorm:"type:date;not null"`
-	EventTime    time.Time   `json:"event_time" gorm:"type:time;not null"`
+	EventTime    DBTime      `json:"event_time" gorm:"type:time;not null"`
 	Location     string      `json:"location,omitempty"`
 	OnlineLink   string      `json:"online_link,omitempty"`
 	MaxAttendees *int        `json:"max_attendees,omitempty"`
