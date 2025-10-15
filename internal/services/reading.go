@@ -300,7 +300,7 @@ func (s *ReadingService) CompleteClubAssignment(clubID uint) (*models.ClubAssign
 	book, _ := s.bookRepo.GetByID(a.BookID)
 	resp := &models.ClubAssignmentResponse{
 		ID: a.ID, ClubID: a.ClubID, Book: *book, Status: string(a.Status),
-		StartDate: a.StartDate, DueDate: a.DueDate,
+		StartDate: a.StartDate, DueDate: a.DueDate, CompletedAt: a.CompletedAt,
 	}
 
 	if club, cerr := s.clubRepo.GetByID(clubID); cerr == nil {

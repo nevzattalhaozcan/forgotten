@@ -122,4 +122,5 @@ type ClubAssignmentResponse struct {
     Status     string     `json:"status"`
     StartDate  *time.Time `json:"start_date,omitempty"`
     DueDate    *time.Time `json:"due_date,omitempty"`
+    CompletedAt *time.Time `json:"completed_at,omitempty"`
 }
