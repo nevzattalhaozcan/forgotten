@@ -207,32 +207,6 @@ func (h *ReadingHandler) AssignBookToClub(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
-// @Summary Update Club Reading Checkpoint
-// @Description Update the reading checkpoint for a club's current book assignment.
-// @Tags Reading
-// @Accept json
-// @Produce json
-// @Param id path int true "Club ID"
-// @Param request body models.UpdateClubCheckpointRequest true "Update Club Checkpoint Request"
-// @Success 200 {object} models.ClubAssignmentResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Router /clubs/{id}/reading/checkpoint [patch]
-// @Security Bearer
-func (h *ReadingHandler) UpdateClubCheckpoint(c *gin.Context) {
-	clubID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-	var req models.UpdateClubCheckpointRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
-		return
-	}
-	resp, err := h.readingService.UpdateClubCheckpoint(uint(clubID), &req)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, resp)
-}
-
 // @Summary Complete Club Book Assignment
 // @Description Mark the current book assignment for a club as completed.
 // @Tags Reading

@@ -228,7 +228,6 @@ func (s *Server) setupRoutes() {
 		protected.GET("/users/:id/reading/history", readingHandler.UserReadingHistory)
 
 		protected.POST("/clubs/:id/reading/assign", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.AssignBookToClub)
-		protected.PATCH("/clubs/:id/reading/checkpoint", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.UpdateClubCheckpoint)
 		protected.POST("/clubs/:id/reading/complete", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.CompleteClubAssignment)
 		protected.GET("/clubs/:id/reading", readingHandler.ListClubAssignments)
 	}

@@ -256,8 +256,6 @@ func (s *ReadingService) AssignBookToClub(clubID, bookID uint, req *models.Assig
 		Status:     models.ClubAssignmentActive,
 		StartDate:  req.StartDate,
 		DueDate:    req.DueDate,
-		TargetPage: req.TargetPage,
-		Checkpoint: req.Checkpoint,
 	}
 
 	if err := s.clubReadRepo.CreateAssignment(a); err != nil {
@@ -266,7 +264,7 @@ func (s *ReadingService) AssignBookToClub(clubID, bookID uint, req *models.Assig
 
 	resp := &models.ClubAssignmentResponse{
 		ID: a.ID, ClubID: clubID, Book: *book, Status: string(a.Status),
-		StartDate: a.StartDate, DueDate: a.DueDate, TargetPage: a.TargetPage, Checkpoint: a.Checkpoint,
+		StartDate: a.StartDate, DueDate: a.DueDate,
 	}
 
 	book, berr := s.bookRepo.GetByID(bookID)
@@ -288,43 +286,6 @@ func (s *ReadingService) AssignBookToClub(clubID, bookID uint, req *models.Assig
 	return resp, nil
 }
 
-func (s *ReadingService) UpdateClubCheckpoint(clubID uint, req *models.UpdateClubCheckpointRequest) (*models.ClubAssignmentResponse, error) {
-	a, err := s.clubReadRepo.GetActiveAssignment(clubID)
-	if err != nil {
-		return nil, err
-	}
-	if req.TargetPage != nil {
-		a.TargetPage = req.TargetPage
-	}
-	if req.Checkpoint != nil {
-		a.Checkpoint = req.Checkpoint
-	}
-	if err := s.clubReadRepo.UpdateAssignment(a); err != nil {
-		return nil, err
-	}
-	book, _ := s.bookRepo.GetByID(a.BookID)
-	resp := &models.ClubAssignmentResponse{
-		ID: a.ID, ClubID: a.ClubID, Book: *book, Status: string(a.Status),
-		StartDate: a.StartDate, DueDate: a.DueDate, TargetPage: a.TargetPage, Checkpoint: a.Checkpoint,
-	}
-
-	if req.TargetPage != nil {
-        if club, cerr := s.clubRepo.GetByID(clubID); cerr == nil && len(club.CurrentBook) > 0 {
-            var cb models.CurrentBook
-            if uerr := json.Unmarshal(club.CurrentBook, &cb); uerr == nil {
-                p := *req.TargetPage
-                cb.Progress = &p
-                if b, merr := json.Marshal(&cb); merr == nil {
-                    club.CurrentBook = b
-                    _ = s.clubRepo.Update(club)
-                }
-            }
-        }
-    }
-
-	return resp, nil
-}
-
 func (s *ReadingService) CompleteClubAssignment(clubID uint) (*models.ClubAssignmentResponse, error) {
 	a, err := s.clubReadRepo.GetActiveAssignment(clubID)
 	if err != nil {
@@ -339,7 +300,7 @@ func (s *ReadingService) CompleteClubAssignment(clubID uint) (*models.ClubAssign
 	book, _ := s.bookRepo.GetByID(a.BookID)
 	resp := &models.ClubAssignmentResponse{
 		ID: a.ID, ClubID: a.ClubID, Book: *book, Status: string(a.Status),
-		StartDate: a.StartDate, DueDate: a.DueDate, TargetPage: a.TargetPage, Checkpoint: a.Checkpoint,
+		StartDate: a.StartDate, DueDate: a.DueDate,
 	}
 
 	if club, cerr := s.clubRepo.GetByID(clubID); cerr == nil {
@@ -363,7 +324,7 @@ func (s *ReadingService) ListClubAssignments(clubID uint) ([]models.ClubAssignme
 		}
 		out = append(out, models.ClubAssignmentResponse{
 			ID: a.ID, ClubID: a.ClubID, Book: *book, Status: string(a.Status),
-			StartDate: a.StartDate, DueDate: a.DueDate, TargetPage: a.TargetPage, Checkpoint: a.Checkpoint,
+			StartDate: a.StartDate, DueDate: a.DueDate,
 		})
 	}
 	return out, nil

@@ -72,8 +72,6 @@ type ClubBookAssignment struct {
     StartDate   *time.Time                  `json:"start_date,omitempty"`
     DueDate     *time.Time                  `json:"due_date,omitempty"`
     CompletedAt *time.Time                  `json:"completed_at,omitempty"`
-    TargetPage  *int                        `json:"target_page,omitempty"`
-    Checkpoint  *string                     `json:"checkpoint,omitempty"`
     CreatedAt   time.Time                   `json:"created_at" gorm:"autoCreateTime"`
     UpdatedAt   time.Time                   `json:"updated_at" gorm:"autoUpdateTime"`
 }
@@ -98,13 +96,6 @@ type AssignBookRequest struct {
     BookID     uint       `json:"book_id" validate:"required"`
     StartDate  *time.Time `json:"start_date,omitempty"`
     DueDate    *time.Time `json:"due_date,omitempty"`
-    TargetPage *int       `json:"target_page,omitempty"`
-    Checkpoint *string    `json:"checkpoint,omitempty"`
-}
-
-type UpdateClubCheckpointRequest struct {
-    TargetPage *int    `json:"target_page,omitempty"`
-    Checkpoint *string `json:"checkpoint,omitempty"`
 }
 
 type UserBookProgressResponse struct {
@@ -131,6 +122,4 @@ type ClubAssignmentResponse struct {
     Status     string     `json:"status"`
     StartDate  *time.Time `json:"start_date,omitempty"`
     DueDate    *time.Time `json:"due_date,omitempty"`
-    TargetPage *int       `json:"target_page,omitempty"`
-    Checkpoint *string    `json:"checkpoint,omitempty"`
 }
