@@ -178,6 +178,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/books/search": {
+            "get": {
+                "description": "Search for books using an external API",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Search for books",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of results to return",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "all",
+                        "description": "Source to search (google, isbndb, openlibrary)",
+                        "name": "source",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/books/{id}": {
             "get": {
                 "description": "Retrieve a book's details by its ID",
@@ -346,7 +408,7 @@ const docTemplate = `{
         },
         "/api/v1/clubs": {
             "get": {
-                "description": "Retrieve a list of all clubs",
+                "description": "Retrieve a list of all clubs with optional filters",
                 "produces": [
                     "application/json"
                 ],
@@ -354,12 +416,72 @@ const docTemplate = `{
                     "Clubs"
                 ],
                 "summary": "Get all clubs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by location (partial match)",
+                        "name": "location",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by genre (partial match)",
+                        "name": "genre",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "online",
+                            "in-person",
+                            "hybrid"
+                        ],
+                        "type": "string",
+                        "description": "Filter by meeting type",
+                        "name": "meeting_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum member count",
+                        "name": "min_members",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum member count",
+                        "name": "max_members",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of results to return",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Number of results to skip",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Clubs retrieved successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid filter parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "500": {
@@ -1402,6 +1524,131 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/locations/search": {
+            "get": {
+                "description": "Search for Turkish cities and districts with autocomplete",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Locations"
+                ],
+                "summary": "Search locations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query (minimum 1 character)",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "city",
+                            "district",
+                            "all"
+                        ],
+                        "type": "string",
+                        "default": "all",
+                        "description": "Search type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Maximum results to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/preferences": {
+            "patch": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update user preferences including privacy settings and app preferences",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user preferences",
+                "parameters": [
+                    {
+                        "description": "Preferences data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePreferencesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preferences updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user/profile": {
             "get": {
                 "security": [
@@ -1496,6 +1743,52 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/search": {
+            "get": {
+                "description": "Search for users by username or name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Search users",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Maximum results",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1875,6 +2168,52 @@ const docTemplate = `{
             }
         },
         "/api/v1/users/{id}/profile": {
+            "get": {
+                "description": "Get public profile information for any user (no sensitive data)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get public user profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Public profile retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "patch": {
                 "security": [
                     {
@@ -2177,58 +2516,6 @@ const docTemplate = `{
                 "responses": {
                     "201": {
                         "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/models.ClubAssignmentResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/clubs/{id}/reading/checkpoint": {
-            "patch": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Update the reading checkpoint for a club's current book assignment.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Reading"
-                ],
-                "summary": "Update Club Reading Checkpoint",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Club ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Update Club Checkpoint Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.UpdateClubCheckpointRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.ClubAssignmentResponse"
                         }
@@ -3821,6 +4108,51 @@ const docTemplate = `{
             }
         },
         "/users/{id}/readings/{bookID}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Retrieve the current reading progress of a book.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reading"
+                ],
+                "summary": "Get Reading Progress",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Book ID",
+                        "name": "bookID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserBookProgressResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -3949,17 +4281,11 @@ const docTemplate = `{
                 "book_id": {
                     "type": "integer"
                 },
-                "checkpoint": {
-                    "type": "string"
-                },
                 "due_date": {
                     "type": "string"
                 },
                 "start_date": {
                     "type": "string"
-                },
-                "target_page": {
-                    "type": "integer"
                 }
             }
         },
@@ -4043,9 +4369,6 @@ const docTemplate = `{
                 "book": {
                     "$ref": "#/definitions/models.Book"
                 },
-                "checkpoint": {
-                    "type": "string"
-                },
                 "club_id": {
                     "type": "integer"
                 },
@@ -4060,9 +4383,6 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
-                },
-                "target_page": {
-                    "type": "integer"
                 }
             }
         },
@@ -4074,6 +4394,17 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "models.CommentSummary": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -4163,6 +4494,14 @@ const docTemplate = `{
                     "maximum": 1000,
                     "minimum": 1
                 },
+                "meeting_type": {
+                    "type": "string",
+                    "enum": [
+                        "online",
+                        "in-person",
+                        "hybrid"
+                    ]
+                },
                 "name": {
                     "type": "string",
                     "maxLength": 100,
@@ -4191,17 +4530,20 @@ const docTemplate = `{
         "models.CreateEventRequest": {
             "type": "object",
             "required": [
-                "end_time",
+                "event_date",
+                "event_time",
                 "event_type",
-                "start_time",
                 "title"
             ],
             "properties": {
                 "description": {
                     "type": "string"
                 },
-                "end_time": {
-                    "type": "string"
+                "event_date": {
+                    "$ref": "#/definitions/models.DateYMD"
+                },
+                "event_time": {
+                    "$ref": "#/definitions/models.TimeHM"
                 },
                 "event_type": {
                     "enum": [
@@ -4224,9 +4566,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "online_link": {
-                    "type": "string"
-                },
-                "start_time": {
                     "type": "string"
                 },
                 "title": {
@@ -4289,6 +4628,14 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DateYMD": {
+            "type": "object",
+            "properties": {
+                "time.Time": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -4307,6 +4654,17 @@ const docTemplate = `{
                 "EventInPerson",
                 "EventOnline"
             ]
+        },
+        "models.LikeSummary": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
         },
         "models.LoginRequest": {
             "type": "object",
@@ -4483,6 +4841,12 @@ const docTemplate = `{
                 "club_id": {
                     "type": "integer"
                 },
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.CommentSummary"
+                    }
+                },
                 "comments_count": {
                     "type": "integer"
                 },
@@ -4500,6 +4864,12 @@ const docTemplate = `{
                 },
                 "is_pinned": {
                     "type": "boolean"
+                },
+                "likes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.LikeSummary"
+                    }
                 },
                 "likes_count": {
                     "type": "integer"
@@ -4694,6 +5064,14 @@ const docTemplate = `{
                 }
             }
         },
+        "models.TimeHM": {
+            "type": "object",
+            "properties": {
+                "time.Time": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UpdateAccountRequest": {
             "type": "object",
             "properties": {
@@ -4772,17 +5150,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UpdateClubCheckpointRequest": {
-            "type": "object",
-            "properties": {
-                "checkpoint": {
-                    "type": "string"
-                },
-                "target_page": {
-                    "type": "integer"
-                }
-            }
-        },
         "models.UpdateClubMembershipRequest": {
             "type": "object",
             "properties": {
@@ -4831,6 +5198,14 @@ const docTemplate = `{
                     "maximum": 1000,
                     "minimum": 1
                 },
+                "meeting_type": {
+                    "type": "string",
+                    "enum": [
+                        "online",
+                        "in-person",
+                        "hybrid"
+                    ]
+                },
                 "name": {
                     "type": "string",
                     "maxLength": 100,
@@ -4862,8 +5237,11 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "end_time": {
-                    "type": "string"
+                "event_date": {
+                    "$ref": "#/definitions/models.DateYMD"
+                },
+                "event_time": {
+                    "$ref": "#/definitions/models.TimeHM"
                 },
                 "event_type": {
                     "enum": [
@@ -4886,9 +5264,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "online_link": {
-                    "type": "string"
-                },
-                "start_time": {
                     "type": "string"
                 },
                 "title": {
@@ -4943,6 +5318,17 @@ const docTemplate = `{
                     ]
                 },
                 "type_data": {}
+            }
+        },
+        "models.UpdatePreferencesRequest": {
+            "type": "object",
+            "required": [
+                "preferences"
+            ],
+            "properties": {
+                "preferences": {
+                    "$ref": "#/definitions/models.UserPreferences"
+                }
             }
         },
         "models.UpdateProfileRequest": {
@@ -5081,6 +5467,10 @@ const docTemplate = `{
                 }
             }
         },
+        "models.UserPreferences": {
+            "type": "object",
+            "additionalProperties": true
+        },
         "models.UserReadingHistoryItem": {
             "type": "object",
             "properties": {
@@ -5148,6 +5538,9 @@ const docTemplate = `{
                 },
                 "location": {
                     "type": "string"
+                },
+                "preferences": {
+                    "$ref": "#/definitions/models.UserPreferences"
                 },
                 "reading_goal": {
                     "type": "integer"

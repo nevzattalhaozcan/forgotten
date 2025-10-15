@@ -275,7 +275,7 @@ func RequireClubMembership(clubRepo repository.ClubRepository, postRepo reposito
 	}
 }
 
-func RequireClubMembershipWithRoles(clubRepo repository.ClubRepository, allowedRoles ...string) gin.HandlerFunc {
+func RequireClubMembershipWithRoles(clubRepo repository.ClubRepository, eventRepo repository.EventRepository, allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// allow admin and superuser to bypass club membership check
 		userRoleRaw, exists := c.Get("user_role")
@@ -294,15 +294,41 @@ func RequireClubMembershipWithRoles(clubRepo repository.ClubRepository, allowedR
 			c.Abort()
 			return
 		}
+		
+		var clubID uint
+		var err error
 
-		clubIDParam := c.Param("id")
-		if clubIDParam == "" {
-			clubIDParam = c.Param("club_id")
-		}
+		path := c.FullPath()
+		idParam := c.Param("id")
 
-		clubID, err := strconv.ParseUint(clubIDParam, 10, 32)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+		if strings.Contains(path, "/events/:id") && idParam != "" {
+			eventID, parseErr := strconv.ParseUint(idParam, 10, 32)
+			if parseErr != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event ID"})
+				c.Abort()
+				return
+			}
+			event, err := eventRepo.GetByID(uint(eventID))
+			if err != nil {
+				if err == gorm.ErrRecordNotFound {
+					c.JSON(http.StatusNotFound, gin.H{"error": "event not found"})
+				} else {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch event"})
+				}
+				c.Abort()
+				return
+			}
+			clubID = event.ClubID
+		} else if strings.Contains(path, "/clubs/:id") && idParam != "" {
+			clubID64, parseErr := strconv.ParseUint(idParam, 10, 32)
+			if parseErr != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid club ID"})
+				c.Abort()
+				return
+			}
+			clubID = uint(clubID64)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "club ID is required in path"})
 			c.Abort()
 			return
 		}

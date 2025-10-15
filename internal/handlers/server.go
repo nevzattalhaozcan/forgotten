@@ -174,8 +174,8 @@ func (s *Server) setupRoutes() {
 		protected.PATCH("/user/preferences", userHandler.UpdatePreferences)
 
 		protected.POST("/clubs", clubHandler.CreateClub)
-		protected.PUT("/clubs/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin"), clubHandler.UpdateClub)
-		protected.DELETE("/clubs/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin"), clubHandler.DeleteClub)
+		protected.PUT("/clubs/:id", middleware.RequireClubMembershipWithRoles(clubRepo, eventRepo, "club_admin"), clubHandler.UpdateClub)
+		protected.DELETE("/clubs/:id", middleware.RequireClubMembershipWithRoles(clubRepo, eventRepo, "club_admin"), clubHandler.DeleteClub)
 		protected.GET("/clubs/:id/poll", postHandler.GetPollPostsByClubID)
 
 		protected.POST("/clubs/:id/join", clubHandler.JoinClub)
@@ -183,14 +183,14 @@ func (s *Server) setupRoutes() {
 		protected.POST("/clubs/:id/ratings", middleware.RequireClubMembership(clubRepo, postRepo, commentRepo, eventRepo), clubHandler.RateClub)
 		protected.GET("/my-clubs", clubHandler.GetMyClubs)
 
-		protected.PUT("/clubs/:id/members/:user_id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), clubHandler.UpdateClubMember)
+		protected.PUT("/clubs/:id/members/:user_id", middleware.RequireClubMembershipWithRoles(clubRepo, eventRepo, "club_admin", "moderator"), clubHandler.UpdateClubMember)
 		protected.GET("/clubs/:id/members/:user_id", clubHandler.GetClubMember)
 
-		protected.POST("/clubs/:id/events", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), eventHandler.CreateEvent)
+		protected.POST("/clubs/:id/events", middleware.RequireClubMembershipWithRoles(clubRepo, eventRepo, "club_admin", "moderator"), eventHandler.CreateEvent)
 		protected.GET("/clubs/:id/events", middleware.RequireClubMembership(clubRepo, postRepo, commentRepo, eventRepo), eventHandler.GetClubEvents)
 		protected.GET("/events/:id", middleware.RequireClubMembership(clubRepo, postRepo, commentRepo, eventRepo), eventHandler.GetEvent)
-		protected.PUT("/events/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), eventHandler.UpdateEvent)
-		protected.DELETE("/events/:id", middleware.RequireClubMembershipWithRoles(clubRepo, "club_admin", "moderator"), eventHandler.DeleteEvent)
+		protected.PUT("/events/:id", middleware.RequireClubMembershipWithRoles(clubRepo, eventRepo, "club_admin", "moderator"), eventHandler.UpdateEvent)
+		protected.DELETE("/events/:id", middleware.RequireClubMembershipWithRoles(clubRepo, eventRepo, "club_admin", "moderator"), eventHandler.DeleteEvent)
 
 		protected.POST("/events/:id/rsvp", middleware.RequireClubMembership(clubRepo, postRepo, commentRepo, eventRepo), eventHandler.RSVPToEvent)
 		protected.GET("/events/:id/attendees", middleware.RequireClubMembership(clubRepo, postRepo, commentRepo, eventRepo), eventHandler.GetEventAttendees)
@@ -227,8 +227,8 @@ func (s *Server) setupRoutes() {
 		protected.GET("/users/:id/reading", middleware.AuthorizeSelf(), readingHandler.ListUserProgress)
 		protected.GET("/users/:id/reading/history", readingHandler.UserReadingHistory)
 
-		protected.POST("/clubs/:id/reading/assign", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.AssignBookToClub)
-		protected.POST("/clubs/:id/reading/complete", middleware.RequireClubMembershipWithRoles(clubRepo, "admin", "moderator"), readingHandler.CompleteClubAssignment)
+		protected.POST("/clubs/:id/reading/assign", middleware.RequireClubMembershipWithRoles(clubRepo, eventRepo, "club_admin", "moderator"), readingHandler.AssignBookToClub)
+		protected.POST("/clubs/:id/reading/complete", middleware.RequireClubMembershipWithRoles(clubRepo, eventRepo, "club_admin", "moderator"), readingHandler.CompleteClubAssignment)
 		protected.GET("/clubs/:id/reading", readingHandler.ListClubAssignments)
 	}
 }

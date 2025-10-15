@@ -4,14 +4,10 @@ definitions:
     properties:
       book_id:
         type: integer
-      checkpoint:
-        type: string
       due_date:
         type: string
       start_date:
         type: string
-      target_page:
-        type: integer
     required:
     - book_id
     type: object
@@ -70,8 +66,6 @@ definitions:
     properties:
       book:
         $ref: '#/definitions/models.Book'
-      checkpoint:
-        type: string
       club_id:
         type: integer
       due_date:
@@ -82,8 +76,6 @@ definitions:
         type: string
       status:
         type: string
-      target_page:
-        type: integer
     type: object
   models.ClubSummary:
     properties:
@@ -91,6 +83,13 @@ definitions:
         type: integer
       name:
         type: string
+    type: object
+  models.CommentSummary:
+    properties:
+      id:
+        type: integer
+      user_id:
+        type: integer
     type: object
   models.CompleteReadingRequest:
     properties:
@@ -152,6 +151,12 @@ definitions:
         maximum: 1000
         minimum: 1
         type: integer
+      meeting_type:
+        enum:
+        - online
+        - in-person
+        - hybrid
+        type: string
       name:
         maxLength: 100
         minLength: 3
@@ -175,8 +180,10 @@ definitions:
     properties:
       description:
         type: string
-      end_time:
-        type: string
+      event_date:
+        $ref: '#/definitions/models.DateYMD'
+      event_time:
+        $ref: '#/definitions/models.TimeHM'
       event_type:
         allOf:
         - $ref: '#/definitions/models.EventType'
@@ -191,14 +198,12 @@ definitions:
         type: integer
       online_link:
         type: string
-      start_time:
-        type: string
       title:
         type: string
     required:
-    - end_time
+    - event_date
+    - event_time
     - event_type
-    - start_time
     - title
     type: object
   models.CreatePostRequest:
@@ -241,6 +246,11 @@ definitions:
       title:
         type: string
     type: object
+  models.DateYMD:
+    properties:
+      time.Time:
+        type: string
+    type: object
   models.ErrorResponse:
     properties:
       error:
@@ -254,6 +264,13 @@ definitions:
     x-enum-varnames:
     - EventInPerson
     - EventOnline
+  models.LikeSummary:
+    properties:
+      id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
   models.LoginRequest:
     properties:
       email:
@@ -372,6 +389,10 @@ definitions:
         $ref: '#/definitions/models.ClubSummary'
       club_id:
         type: integer
+      comments:
+        items:
+          $ref: '#/definitions/models.CommentSummary'
+        type: array
       comments_count:
         type: integer
       content:
@@ -384,6 +405,10 @@ definitions:
         type: integer
       is_pinned:
         type: boolean
+      likes:
+        items:
+          $ref: '#/definitions/models.LikeSummary'
+        type: array
       likes_count:
         type: integer
       title:
@@ -517,6 +542,11 @@ definitions:
       message:
         type: string
     type: object
+  models.TimeHM:
+    properties:
+      time.Time:
+        type: string
+    type: object
   models.UpdateAccountRequest:
     properties:
       email:
@@ -574,13 +604,6 @@ definitions:
         minLength: 1
         type: string
     type: object
-  models.UpdateClubCheckpointRequest:
-    properties:
-      checkpoint:
-        type: string
-      target_page:
-        type: integer
-    type: object
   models.UpdateClubMembershipRequest:
     properties:
       is_approved:
@@ -615,6 +638,12 @@ definitions:
         maximum: 1000
         minimum: 1
         type: integer
+      meeting_type:
+        enum:
+        - online
+        - in-person
+        - hybrid
+        type: string
       name:
         maxLength: 100
         minLength: 3
@@ -636,8 +665,10 @@ definitions:
     properties:
       description:
         type: string
-      end_time:
-        type: string
+      event_date:
+        $ref: '#/definitions/models.DateYMD'
+      event_time:
+        $ref: '#/definitions/models.TimeHM'
       event_type:
         allOf:
         - $ref: '#/definitions/models.EventType'
@@ -651,8 +682,6 @@ definitions:
       max_attendees:
         type: integer
       online_link:
-        type: string
-      start_time:
         type: string
       title:
         type: string
@@ -692,6 +721,13 @@ definitions:
         - annotation
         type: string
       type_data: {}
+    type: object
+  models.UpdatePreferencesRequest:
+    properties:
+      preferences:
+        $ref: '#/definitions/models.UserPreferences'
+    required:
+    - preferences
     type: object
   models.UpdateProfileRequest:
     properties:
@@ -789,6 +825,9 @@ definitions:
       user_id:
         type: integer
     type: object
+  models.UserPreferences:
+    additionalProperties: true
+    type: object
   models.UserReadingHistoryItem:
     properties:
       book:
@@ -834,6 +873,8 @@ definitions:
         type: string
       location:
         type: string
+      preferences:
+        $ref: '#/definitions/models.UserPreferences'
       reading_goal:
         type: integer
       role:
@@ -1076,9 +1117,86 @@ paths:
       summary: Update a book
       tags:
       - Books
+  /api/v1/books/search:
+    get:
+      description: Search for books using an external API
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - default: 20
+        description: Number of results to return
+        in: query
+        name: limit
+        type: integer
+      - default: all
+        description: Source to search (google, isbndb, openlibrary)
+        in: query
+        name: source
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Search results
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search for books
+      tags:
+      - Books
   /api/v1/clubs:
     get:
-      description: Retrieve a list of all clubs
+      description: Retrieve a list of all clubs with optional filters
+      parameters:
+      - description: Filter by location (partial match)
+        in: query
+        name: location
+        type: string
+      - description: Filter by genre (partial match)
+        in: query
+        name: genre
+        type: string
+      - description: Filter by meeting type
+        enum:
+        - online
+        - in-person
+        - hybrid
+        in: query
+        name: meeting_type
+        type: string
+      - description: Minimum member count
+        in: query
+        name: min_members
+        type: integer
+      - description: Maximum member count
+        in: query
+        name: max_members
+        type: integer
+      - default: 20
+        description: Number of results to return
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of results to skip
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -1086,6 +1204,12 @@ paths:
           description: Clubs retrieved successfully
           schema:
             additionalProperties: true
+            type: object
+        "400":
+          description: Bad request - invalid filter parameters
+          schema:
+            additionalProperties:
+              type: string
             type: object
         "500":
           description: Internal server error
@@ -1784,6 +1908,89 @@ paths:
       summary: Get public events
       tags:
       - Events
+  /api/v1/locations/search:
+    get:
+      description: Search for Turkish cities and districts with autocomplete
+      parameters:
+      - description: Search query (minimum 1 character)
+        in: query
+        name: q
+        required: true
+        type: string
+      - default: all
+        description: Search type
+        enum:
+        - city
+        - district
+        - all
+        in: query
+        name: type
+        type: string
+      - default: 10
+        description: Maximum results to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Search results
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search locations
+      tags:
+      - Locations
+  /api/v1/user/preferences:
+    patch:
+      consumes:
+      - application/json
+      description: Update user preferences including privacy settings and app preferences
+      parameters:
+      - description: Preferences data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePreferencesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Preferences updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Update user preferences
+      tags:
+      - Users
   /api/v1/user/profile:
     get:
       description: Retrieve the profile of the authenticated user
@@ -2065,6 +2272,37 @@ paths:
       tags:
       - Users
   /api/v1/users/{id}/profile:
+    get:
+      description: Get public profile information for any user (no sensitive data)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Public profile retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get public user profile
+      tags:
+      - Users
     patch:
       consumes:
       - application/json
@@ -2129,6 +2367,37 @@ paths:
               type: string
             type: object
       summary: Get user's clubs
+      tags:
+      - Users
+  /api/v1/users/search:
+    get:
+      description: Search for users by username or name
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - default: 20
+        description: Maximum results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Search results
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search users
       tags:
       - Users
   /clubs/{id}/posts:
@@ -2294,39 +2563,6 @@ paths:
       security:
       - Bearer: []
       summary: Assign Book to Club
-      tags:
-      - Reading
-  /clubs/{id}/reading/checkpoint:
-    patch:
-      consumes:
-      - application/json
-      description: Update the reading checkpoint for a club's current book assignment.
-      parameters:
-      - description: Club ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Update Club Checkpoint Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.UpdateClubCheckpointRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.ClubAssignmentResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      security:
-      - Bearer: []
-      summary: Update Club Reading Checkpoint
       tags:
       - Reading
   /clubs/{id}/reading/complete:
@@ -3381,6 +3617,35 @@ paths:
       tags:
       - Reading
   /users/{id}/readings/{bookID}:
+    get:
+      description: Retrieve the current reading progress of a book.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Book ID
+        in: path
+        name: bookID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserBookProgressResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get Reading Progress
+      tags:
+      - Reading
     put:
       consumes:
       - application/json
